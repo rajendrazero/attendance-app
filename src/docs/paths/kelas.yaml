@@ -1,0 +1,38 @@
+root:
+  get:
+    tags: [Kelas]
+    summary: List kelas
+  post:
+    tags: [Kelas]
+    summary: Create kelas
+    security: [ { BearerAuth: [] } ]
+
+detail:
+  get:
+    tags: [Kelas]
+    summary: Detail kelas
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  put:
+    tags: [Kelas]
+    summary: Update kelas
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  delete:
+    tags: [Kelas]
+    summary: Delete kelas
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }

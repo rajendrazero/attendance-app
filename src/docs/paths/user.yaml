@@ -1,0 +1,51 @@
+root:
+  get:
+    tags: [User]
+    summary: List user
+    security:
+      - BearerAuth: []
+  post:
+    tags: [User]
+    summary: Create user
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.user.yaml#/User"
+
+detail:
+  get:
+    tags: [User]
+    summary: Detail user
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  put:
+    tags: [User]
+    summary: Update user
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  delete:
+    tags: [User]
+    summary: Delete user
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }

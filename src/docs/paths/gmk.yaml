@@ -1,0 +1,38 @@
+root:
+  get:
+    tags: [GMK]
+    summary: List GMK
+  post:
+    tags: [GMK]
+    summary: Create GMK
+    security: [ { BearerAuth: [] } ]
+
+detail:
+  get:
+    tags: [GMK]
+    summary: Detail GMK
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  put:
+    tags: [GMK]
+    summary: Update GMK
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  delete:
+    tags: [GMK]
+    summary: Delete GMK
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }

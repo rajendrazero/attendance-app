@@ -1,0 +1,5 @@
+root:
+  get:
+    tags: [Validation Log]
+    summary: List validation log
+    security: [ { BearerAuth: [] } ]

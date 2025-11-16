@@ -1,0 +1,42 @@
+Jurusan:
+  type: object
+  properties:
+    id: { type: integer }
+    kode_jurusan: { type: string }
+    nama_jurusan: { type: string }
+
+Kelas:
+  type: object
+  properties:
+    id: { type: integer }
+    nama_kelas: { type: string }
+    tingkat: { type: integer }
+    jurusan_id: { type: integer }
+    wali_kelas_id: { type: integer }
+
+Mapel:
+  type: object
+  properties:
+    id: { type: integer }
+    nama_mapel: { type: string }
+
+GMK:
+  type: object
+  properties:
+    id: { type: integer }
+    guru_id: { type: integer }
+    mapel_id: { type: integer }
+    kelas_id: { type: integer }
+
+Semester:
+  type: object
+  properties:
+    id: { type: integer }
+    tahun_ajaran: { type: string }
+    semester: { type: integer }
+    start_date:
+      type: string
+      format: date
+    end_date:
+      type: string
+      format: date

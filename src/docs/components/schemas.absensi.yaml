@@ -1,0 +1,16 @@
+Absensi:
+  type: object
+  properties:
+    id: { type: integer }
+    student_id: { type: integer }
+    tanggal: { type: string, format: date }
+    jam_ke: { type: integer, nullable: true }
+    status:
+      type: string
+      enum: [hadir, sakit, izin, tanpa_keterangan]
+    bukti_file: { type: string }
+    keterangan: { type: string }
+    created_by: { type: integer }
+    validated_by: { type: integer }
+    semester_id: { type: integer }
+    mapel_id: { type: integer }

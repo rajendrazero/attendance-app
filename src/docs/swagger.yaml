@@ -1,0 +1,563 @@
+openapi: 3.0.3
+info:
+  title: Attendance Management API
+  version: 1.0.0
+  description: >
+    Sistem absensi sekolah berbasis Node.js, Express, Sequelize, RBAC, dan semester.
+    Mendukung absensi harian, absensi per jam, validasi, rekap, data master,
+    manajemen user, scheduler otomatis, export, file bukti, serta logging aktivitas.
+
+servers:
+  - url: http://localhost:3000
+    description: Local Development
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        nisn: { type: string }
+        username: { type: string }
+        email: { type: string }
+        role:
+          type: string
+          enum: [super_admin, bk, wali_kelas, guru_mapel, perangkat_kelas, siswa]
+        nama_lengkap: { type: string }
+        kelas_id: { type: integer }
+        jurusan_id: { type: integer }
+        is_active: { type: boolean }
+        last_login:
+          type: string
+          format: date-time
+
+    Jurusan:
+      type: object
+      properties:
+        id: { type: integer }
+        kode_jurusan: { type: string }
+        nama_jurusan: { type: string }
+
+    Kelas:
+      type: object
+      properties:
+        id: { type: integer }
+        nama_kelas: { type: string }
+        tingkat: { type: integer }
+        jurusan_id: { type: integer }
+        wali_kelas_id: { type: integer }
+
+    Mapel:
+      type: object
+      properties:
+        id: { type: integer }
+        nama_mapel: { type: string }
+
+    GMK:
+      type: object
+      properties:
+        id: { type: integer }
+        guru_id: { type: integer }
+        mapel_id: { type: integer }
+        kelas_id: { type: integer }
+
+    Semester:
+      type: object
+      properties:
+        id: { type: integer }
+        tahun_ajaran: { type: string }
+        semester: { type: integer }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+
+    Absensi:
+      type: object
+      properties:
+        id: { type: integer }
+        student_id: { type: integer }
+        tanggal: { type: string, format: date }
+        jam_ke: { type: integer, nullable: true }
+        status:
+          type: string
+          enum: [hadir, sakit, izin, tanpa_keterangan]
+        bukti_file: { type: string }
+        keterangan: { type: string }
+        created_by: { type: integer }
+        validated_by: { type: integer }
+        semester_id: { type: integer }
+        mapel_id: { type: integer }
+
+tags:
+  - name: Auth
+    description: Login, logout, refresh token
+
+  - name: User
+    description: CRUD dan manajemen pengguna
+
+  - name: Jurusan
+    description: CRUD jurusan
+
+  - name: Kelas
+    description: CRUD kelas
+
+  - name: Mapel
+    description: CRUD mata pelajaran
+
+  - name: GMK
+    description: Relasi Guru - Mapel - Kelas
+
+  - name: Semester
+    description: Pengaturan semester dan semester aktif
+
+  - name: Absensi
+    description: Input absensi, validasi, rekap, ranking, export
+
+  - name: Activity Log
+    description: Log seluruh aktivitas sistem
+
+  - name: Validation Log
+    description: Log validasi absensi
+
+
+paths:
+
+  ##############################################
+  # AUTH
+  ##############################################
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Login berhasil
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Logout berhasil
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string }
+      responses:
+        200:
+          description: Token berhasil diperbarui
+
+
+  ##############################################
+  # USER MANAGEMENT
+  ##############################################
+
+  /api/user:
+    get:
+      tags: [User]
+      summary: List user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List user
+
+    post:
+      tags: [User]
+      summary: Create user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/User' }
+      responses:
+        201:
+          description: User dibuat
+
+
+  /api/user/{id}:
+    get:
+      tags: [User]
+      summary: Detail user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: Detail user
+
+    put:
+      tags: [User]
+      summary: Update user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/User' }
+      responses:
+        200:
+          description: User updated
+
+    delete:
+      tags: [User]
+      summary: Hapus user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: User deleted
+
+
+  ##############################################
+  # JURUSAN
+  ##############################################
+
+  /api/jurusan:
+    get:
+      tags: [Jurusan]
+      summary: List jurusan
+      security:
+        - BearerAuth: []
+    post:
+      tags: [Jurusan]
+      summary: Create jurusan
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Jurusan' }
+
+  /api/jurusan/{id}:
+    get:
+      tags: [Jurusan]
+      summary: Detail jurusan
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema: { type: integer }
+          required: true
+    put:
+      tags: [Jurusan]
+      summary: Update jurusan
+      security:
+        - BearerAuth: []
+    delete:
+      tags: [Jurusan]
+      summary: Delete jurusan
+      security:
+        - BearerAuth: []
+
+
+  ##############################################
+  # KELAS
+  ##############################################
+
+  /api/kelas:
+    get:
+      tags: [Kelas]
+      summary: List kelas
+      security:
+        - BearerAuth: []
+    post:
+      tags: [Kelas]
+      summary: Create kelas
+      security:
+        - BearerAuth: []
+
+  /api/kelas/{id}:
+    get:
+      tags: [Kelas]
+      summary: Detail kelas
+      security:
+        - BearerAuth: []
+    put:
+      tags: [Kelas]
+      summary: Update kelas
+      security:
+        - BearerAuth: []
+    delete:
+      tags: [Kelas]
+      summary: Delete kelas
+      security:
+        - BearerAuth: []
+
+
+  ##############################################
+  # MAPEL
+  ##############################################
+
+  /api/mapel:
+    get:
+      tags: [Mapel]
+      summary: List mapel
+      security:
+        - BearerAuth: []
+    post:
+      tags: [Mapel]
+      summary: Create mapel
+      security:
+        - BearerAuth: []
+
+  /api/mapel/{id}:
+    get:
+      tags: [Mapel]
+      summary: Detail mapel
+    put:
+      tags: [Mapel]
+      summary: Update mapel
+    delete:
+      tags: [Mapel]
+      summary: Delete mapel
+
+
+  ##############################################
+  # GMK
+  ##############################################
+
+  /api/gmk:
+    get:
+      tags: [GMK]
+      summary: List GMK
+    post:
+      tags: [GMK]
+      summary: Create GMK
+
+  /api/gmk/{id}:
+    get:
+      tags: [GMK]
+      summary: Detail GMK
+    put:
+      tags: [GMK]
+      summary: Update GMK
+    delete:
+      tags: [GMK]
+      summary: Delete GMK
+
+
+  ##############################################
+  # SEMESTER
+  ##############################################
+
+  /api/semester:
+    get:
+      tags: [Semester]
+      summary: List semester
+    post:
+      tags: [Semester]
+      summary: Create semester
+
+  /api/semester/active:
+    get:
+      tags: [Semester]
+      summary: Semester aktif berdasarkan tanggal
+
+  /api/semester/{id}:
+    put:
+      tags: [Semester]
+      summary: Update semester
+    delete:
+      tags: [Semester]
+      summary: Delete semester
+
+
+  ##############################################
+  # ABSENSI
+  ##############################################
+
+  /api/absensi/input-harian:
+    post:
+      tags: [Absensi]
+      summary: Input absensi harian
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                student_id: { type: integer }
+                tanggal: { type: string, format: date }
+                status:
+                  type: string
+                  enum: [hadir, sakit, izin, tanpa_keterangan]
+                keterangan: { type: string }
+                bukti:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Absensi harian berhasil
+
+  /api/absensi/input-jam:
+    post:
+      tags: [Absensi]
+      summary: Input absensi per jam
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                student_id: { type: integer }
+                tanggal: { type: string, format: date }
+                jam_ke: { type: integer }
+                status:
+                  type: string
+                  enum: [hadir, sakit, izin, tanpa_keterangan]
+                bukti:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Absensi jam-ke berhasil
+
+  /api/absensi/validation-queue:
+    get:
+      tags: [Absensi]
+      summary: Queue absensi menunggu validasi
+      security:
+        - BearerAuth: []
+
+  /api/absensi/validate:
+    post:
+      tags: [Absensi]
+      summary: Validasi absensi oleh guru mapel
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                absensi_id: { type: integer }
+                status_validasi: { type: string }
+
+  /api/absensi/rekap-harian:
+    get:
+      tags: [Absensi]
+      summary: Rekap harian
+      security:
+        - BearerAuth: []
+
+  /api/absensi/rekap-bulanan:
+    get:
+      tags: [Absensi]
+      summary: Rekap bulanan
+      security:
+        - BearerAuth: []
+
+  /api/absensi/rekap-kelas:
+    get:
+      tags: [Absensi]
+      summary: Rekap per kelas
+      security:
+        - BearerAuth: []
+
+  /api/absensi/ranking-siswa:
+    get:
+      tags: [Absensi]
+      summary: Ranking siswa
+      security:
+        - BearerAuth: []
+
+  /api/absensi/riwayat:
+    get:
+      tags: [Absensi]
+      summary: Riwayat absensi siswa
+      security:
+        - BearerAuth: []
+
+  /api/absensi/export/csv:
+    get:
+      tags: [Absensi]
+      summary: Export CSV
+      security:
+        - BearerAuth: []
+
+  /api/absensi/export/pdf:
+    get:
+      tags: [Absensi]
+      summary: Export PDF
+      security:
+        - BearerAuth: []
+
+
+  ##############################################
+  # ACTIVITY LOG
+  ##############################################
+
+  /api/activity_log:
+    get:
+      tags: [Activity Log]
+      summary: Menampilkan aktivitas sistem
+      security:
+        - BearerAuth: []
+
+
+  ##############################################
+  # VALIDATION LOG
+  ##############################################
+
+  /api/validation_log:
+    get:
+      tags: [Validation Log]
+      summary: Log validasi absensi
+      security:
+        - BearerAuth: []

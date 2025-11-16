@@ -1,0 +1,11 @@
+[2025-11-16 15:47:40] [31merror[39m: [31mFatal: Server failed to start. connect ECONNREFUSED 127.0.0.1:3306[39m
+[2025-11-16 15:50:17] [31merror[39m: [31mFatal: Server failed to start. Cannot read properties of undefined (reading 'method')[39m
+[2025-11-16 15:55:53] [31merror[39m: [31mFatal: Server failed to start. Cannot read properties of undefined (reading 'method')[39m
+[2025-11-16 15:57:02] [31merror[39m: [31mUNCAUGHT EXCEPTION: Cannot find module '../config/logger'[39m
+[31mRequire stack:[39m
+[31m- /data/data/com.termux/files/home/techx/node-belajar/attendance-app/src/swagger.js[39m
+[31m- /data/data/com.termux/files/home/techx/node-belajar/attendance-app/src/server.js[39m
+[2025-11-16 16:05:04] [31merror[39m: [31mFatal: Server failed to start. Cannot read properties of undefined (reading 'method')[39m
+[2025-11-16 16:06:03] [31merror[39m: [31mFatal: Server failed to start. Cannot read properties of undefined (reading 'method')[39m
+[2025-11-16 16:10:12] [31merror[39m: [31mFatal error: Cannot read properties of undefined (reading 'method')[39m
+[2025-11-16 16:18:30] [31merror[39m: [31mFatal error: Cannot read properties of undefined (reading 'method')[39m

@@ -1,0 +1,43 @@
+root:
+  get:
+    tags: [Semester]
+    summary: List semester
+  post:
+    tags: [Semester]
+    summary: Create semester
+    security: [ { BearerAuth: [] } ]
+
+active:
+  get:
+    tags: [Semester]
+    summary: Get semester aktif (by current date)
+
+detail:
+  get:
+    tags: [Semester]
+    summary: Detail semester
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  put:
+    tags: [Semester]
+    summary: Update semester
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  delete:
+    tags: [Semester]
+    summary: Delete semester
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }

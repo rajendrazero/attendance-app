@@ -1,0 +1,80 @@
+inputHarian:
+  post:
+    tags: [Absensi]
+    summary: Input absensi harian
+    security: [ { BearerAuth: [] } ]
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              student_id: { type: integer }
+              tanggal: { type: string }
+              status:
+                type: string
+                enum: [hadir, sakit, izin, tanpa_keterangan]
+              bukti:
+                type: string
+                format: binary
+
+inputJam:
+  post:
+    tags: [Absensi]
+    summary: Input absensi per jam
+    security: [ { BearerAuth: [] } ]
+
+queue:
+  get:
+    tags: [Absensi]
+    summary: Validasi queue
+    security: [ { BearerAuth: [] } ]
+
+validate:
+  post:
+    tags: [Absensi]
+    summary: Validasi absensi
+    security: [ { BearerAuth: [] } ]
+
+rekapHarian:
+  get:
+    tags: [Absensi]
+    summary: Rekap harian
+    security: [ { BearerAuth: [] } ]
+
+rekapBulanan:
+  get:
+    tags: [Absensi]
+    summary: Rekap bulanan
+    security: [ { BearerAuth: [] } ]
+
+rekapKelas:
+  get:
+    tags: [Absensi]
+    summary: Rekap kelas
+    security: [ { BearerAuth: [] } ]
+
+ranking:
+  get:
+    tags: [Absensi]
+    summary: Ranking siswa
+    security: [ { BearerAuth: [] } ]
+
+riwayat:
+  get:
+    tags: [Absensi]
+    summary: Riwayat siswa
+    security: [ { BearerAuth: [] } ]
+
+csv:
+  get:
+    tags: [Absensi]
+    summary: Export CSV
+    security: [ { BearerAuth: [] } ]
+
+pdf:
+  get:
+    tags: [Absensi]
+    summary: Export PDF
+    security: [ { BearerAuth: [] } ]

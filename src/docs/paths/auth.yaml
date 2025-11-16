@@ -1,0 +1,42 @@
+login:
+  post:
+    tags: [Auth]
+    summary: Login user
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username: { type: string }
+              password: { type: string }
+    responses:
+      200:
+        description: Login berhasil
+
+logout:
+  post:
+    tags: [Auth]
+    summary: Logout user
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Logout berhasil
+
+refresh:
+  post:
+    tags: [Auth]
+    summary: Refresh access token
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              refresh_token: { type: string }
+    responses:
+      200:
+        description: Token diperbarui

@@ -1,0 +1,38 @@
+root:
+  get:
+    tags: [Jurusan]
+    summary: List jurusan
+  post:
+    tags: [Jurusan]
+    summary: Create jurusan
+    security: [ { BearerAuth: [] } ]
+
+detail:
+  get:
+    tags: [Jurusan]
+    summary: Detail jurusan
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  put:
+    tags: [Jurusan]
+    summary: Update jurusan
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  delete:
+    tags: [Jurusan]
+    summary: Delete jurusan
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }

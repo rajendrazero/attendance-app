@@ -1,0 +1,38 @@
+root:
+  get:
+    tags: [Mapel]
+    summary: List mapel
+  post:
+    tags: [Mapel]
+    summary: Create mapel
+    security: [ { BearerAuth: [] } ]
+
+detail:
+  get:
+    tags: [Mapel]
+    summary: Detail mapel
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  put:
+    tags: [Mapel]
+    summary: Update mapel
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+  delete:
+    tags: [Mapel]
+    summary: Delete mapel
+    security: [ { BearerAuth: [] } ]
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }

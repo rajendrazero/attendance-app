@@ -1,0 +1,17 @@
+User:
+  type: object
+  properties:
+    id: { type: integer }
+    nisn: { type: string }
+    username: { type: string }
+    email: { type: string }
+    role:
+      type: string
+      enum: [super_admin, bk, wali_kelas, guru_mapel, perangkat_kelas, siswa]
+    nama_lengkap: { type: string }
+    kelas_id: { type: integer }
+    jurusan_id: { type: integer }
+    is_active: { type: boolean }
+    last_login:
+      type: string
+      format: date-time

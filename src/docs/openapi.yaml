@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Attendance Management API
+  version: 1.0.0
+  description: >
+    Sistem absensi sekolah berbasis RBAC, semester, validasi guru mapel,
+    rekap, export, data master, dan activity logging.
+
+servers:
+  - url: http://localhost:3000
+    description: Local Development
+
+paths:
+  /api/auth/login:
+    $ref: "./paths/auth.yaml#/login"
+  /api/auth/logout:
+    $ref: "./paths/auth.yaml#/logout"
+  /api/auth/refresh:
+    $ref: "./paths/auth.yaml#/refresh"
+
+  /api/user:
+    $ref: "./paths/user.yaml#/root"
+  /api/user/{id}:
+    $ref: "./paths/user.yaml#/detail"
+
+  /api/jurusan:
+    $ref: "./paths/jurusan.yaml#/root"
+  /api/jurusan/{id}:
+    $ref: "./paths/jurusan.yaml#/detail"
+
+  /api/kelas:
+    $ref: "./paths/kelas.yaml#/root"
+  /api/kelas/{id}:
+    $ref: "./paths/kelas.yaml#/detail"
+
+  /api/mapel:
+    $ref: "./paths/mapel.yaml#/root"
+  /api/mapel/{id}:
+    $ref: "./paths/mapel.yaml#/detail"
+
+  /api/gmk:
+    $ref: "./paths/gmk.yaml#/root"
+  /api/gmk/{id}:
+    $ref: "./paths/gmk.yaml#/detail"
+
+  /api/semester:
+    $ref: "./paths/semester.yaml#/root"
+  /api/semester/active:
+    $ref: "./paths/semester.yaml#/active"
+  /api/semester/{id}:
+    $ref: "./paths/semester.yaml#/detail"
+
+  /api/absensi/input-harian:
+    $ref: "./paths/absensi.yaml#/inputHarian"
+  /api/absensi/input-jam:
+    $ref: "./paths/absensi.yaml#/inputJam"
+  /api/absensi/validation-queue:
+    $ref: "./paths/absensi.yaml#/queue"
+  /api/absensi/validate:
+    $ref: "./paths/absensi.yaml#/validate"
+  /api/absensi/rekap-harian:
+    $ref: "./paths/absensi.yaml#/rekapHarian"
+  /api/absensi/rekap-bulanan:
+    $ref: "./paths/absensi.yaml#/rekapBulanan"
+  /api/absensi/rekap-kelas:
+    $ref: "./paths/absensi.yaml#/rekapKelas"
+  /api/absensi/ranking-siswa:
+    $ref: "./paths/absensi.yaml#/ranking"
+  /api/absensi/riwayat:
+    $ref: "./paths/absensi.yaml#/riwayat"
+  /api/absensi/export/csv:
+    $ref: "./paths/absensi.yaml#/csv"
+  /api/absensi/export/pdf:
+    $ref: "./paths/absensi.yaml#/pdf"
+
+  /api/activity_log:
+    $ref: "./paths/activity-log.yaml#/root"
+
+  /api/validation_log:
+    $ref: "./paths/validation-log.yaml#/root"
+
+components:
+  securitySchemes:
+    $ref: "./components/security.yaml#/securitySchemes"
+
+  schemas:
+    User:             { $ref: "./components/schemas.user.yaml#/User" }
+    Jurusan:          { $ref: "./components/schemas.master.yaml#/Jurusan" }
+    Kelas:            { $ref: "./components/schemas.master.yaml#/Kelas" }
+    Mapel:            { $ref: "./components/schemas.master.yaml#/Mapel" }
+    GMK:              { $ref: "./components/schemas.master.yaml#/GMK" }
+    Semester:         { $ref: "./components/schemas.master.yaml#/Semester" }
+    Absensi:          { $ref: "./components/schemas.absensi.yaml#/Absensi" }

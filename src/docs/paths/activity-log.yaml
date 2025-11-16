@@ -1,0 +1,5 @@
+root:
+  get:
+    tags: [Activity Log]
+    summary: List activity log
+    security: [ { BearerAuth: [] } ]
