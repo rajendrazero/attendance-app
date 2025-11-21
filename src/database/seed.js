@@ -1,14 +1,18 @@
-require("dotenv").config();
-const { seeder } = require("./index");
+require('dotenv').config();
+const sequelize = require('../config/db');
+const { seeder } = require('./index');
 
 (async () => {
-    try {
-        console.log("🌱 Running seeders...");
-        await seeder.up();
-        console.log("✅ Seeders completed");
-        process.exit(0);
-    } catch (err) {
-        console.error("❌ Seeder failed:", err);
-        process.exit(1);
-    }
+  try {
+    await sequelize.authenticate();
+    console.log('Database connected.');
+
+    await seeder.up();
+    console.log('All seeders have been execu    ted successfully.');
+  } catch (error) {
+    console.error('Error running seeders:', error);
+    process.exit(1);
+  } finally {
+    await sequelize.close();
+  }
 })();

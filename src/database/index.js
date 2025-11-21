@@ -1,41 +1,39 @@
-const { Umzug, SequelizeStorage } = require("umzug");
-const sequelize = require("../config/db");
-const path = require("path");
+const path = require('path');
+const { Umzug, SequelizeStorage } = require('umzug');
+const sequelize = require('../config/db');
 
-/**
- * IMPORTANT:
- * context harus berupa QUERY INTERFACE
- */ 
-const queryInterface = sequelize.getQueryInterface();
-
-/* ------------------------------------------
- * MIGRATOR
- * -----------------------------------------*/
 const migrator = new Umzug({
-    migrations: {
-        glob: path.join(__dirname, "migrations/*.js")
+  migrations: {
+    glob: path.join(__dirname, 'migrations', '*.js'),
+    resolve: ({ name, path: migrationPath, context }) => {
+      const migration = require(migrationPath);
+      return {
+        name,
+        up: async () => migration.up({ context }),
+        down: async () => migration.down({ context }),
+      };
     },
-    context: queryInterface,
-    storage: new SequelizeStorage({
-        sequelize,
-        tableName: "migrations"
-    }),
-    logger: console
+  },
+  context: sequelize.getQueryInterface(),
+  storage: new SequelizeStorage({ sequelize, tableName: 'SequelizeMeta' }),
+  logger: console,
 });
 
-/* ------------------------------------------
- * SEEDER
- * -----------------------------------------*/
 const seeder = new Umzug({
-    migrations: {
-        glob: path.join(__dirname, "seeders/*.js") // kalau belum ada, buat folder seeders
+  migrations: {
+    glob: path.join(__dirname, 'seeders', '*.js'),
+    resolve: ({ name, path: migrationPath, context }) => {
+      const migration = require(migrationPath);
+      return {
+        name,
+        up: async () => migration.up({ context }),
+        down: async () => migration.down({ context }),
+      };
     },
-    context: queryInterface,
-    storage: new SequelizeStorage({
-        sequelize,
-        tableName: "seeders"
-    }),
-    logger: console
+  },
+  context: sequelize.getQueryInterface(),
+  storage: new SequelizeStorage({ sequelize, tableName: 'SequelizeSeeders' }),
+  logger: console,
 });
 
 module.exports = { migrator, seeder };
