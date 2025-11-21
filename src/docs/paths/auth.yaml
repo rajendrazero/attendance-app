@@ -40,3 +40,60 @@ refresh:
     responses:
       200:
         description: Token diperbarui
+
+profile:
+  get:
+    tags: [Auth]
+    summary: Ambil profil user yang sedang login
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Profil user
+#co-pilot {menambahkan dokumentasi untuk endpoint GET /api/auth/profile}
+
+changePassword:
+  post:
+    tags: [Auth]
+    summary: Ganti password user sendiri
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [old_password, new_password]
+            properties:
+              old_password: { type: string }
+              new_password: { type: string }
+    responses:
+      200:
+        description: Password berhasil diganti
+#co-pilot {menambahkan dokumentasi untuk endpoint POST /api/auth/change-password}
+
+adminResetPassword:
+  post:
+    tags: [Auth]
+    summary: Reset password user oleh admin (super_admin)
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [new_password]
+            properties:
+              new_password: { type: string }
+    responses:
+      200:
+        description: Password berhasil direset
+#co-pilot {menambahkan dokumentasi untuk endpoint POST /api/auth/admin/reset-password/{id}}

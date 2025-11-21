@@ -49,3 +49,39 @@ detail:
         name: id
         required: true
         schema: { type: integer }
+
+import:
+  post:
+    tags: [User]
+    summary: Import users dari CSV
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      200:
+        description: Import selesai
+#co-pilot {menambahkan dokumentasi untuk endpoint POST /api/user/import}
+
+export:
+  get:
+    tags: [User]
+    summary: Export users ke CSV
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: File CSV hasil export
+        content:
+          text/csv:
+            schema:
+              type: string
+#co-pilot {menambahkan dokumentasi untuk endpoint GET /api/user/export}

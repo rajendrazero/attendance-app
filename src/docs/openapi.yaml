@@ -15,13 +15,26 @@ paths:
     $ref: "./paths/auth.yaml#/login"
   /api/auth/logout:
     $ref: "./paths/auth.yaml#/logout"
-  /api/auth/refresh:
-    $ref: "./paths/auth.yaml#/refresh"
+  /api/auth/token/refresh:
+    $ref: "./paths/auth.yaml#/refresh" #co-pilot {memperbaiki path refresh agar sesuai dengan implementasi route POST /token/refresh}
+
+  /api/auth/profile:
+    $ref: "./paths/auth.yaml#/profile" #co-pilot {menambahkan dokumentasi endpoint profile}
+
+  /api/auth/change-password:
+    $ref: "./paths/auth.yaml#/changePassword" #co-pilot {menambahkan dokumentasi endpoint change-password}
+
+  /api/auth/admin/reset-password/{id}:
+    $ref: "./paths/auth.yaml#/adminResetPassword" #co-pilot {menambahkan dokumentasi endpoint admin reset-password}
 
   /api/user:
     $ref: "./paths/user.yaml#/root"
   /api/user/{id}:
     $ref: "./paths/user.yaml#/detail"
+  /api/user/import:
+    $ref: "./paths/user.yaml#/import" #co-pilot {menambahkan dokumentasi endpoint import CSV}
+  /api/user/export:
+    $ref: "./paths/user.yaml#/export" #co-pilot {menambahkan dokumentasi endpoint export CSV}
 
   /api/jurusan:
     $ref: "./paths/jurusan.yaml#/root"
