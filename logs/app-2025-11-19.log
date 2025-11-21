@@ -1,0 +1,19 @@
+{"level":"info","message":"Mounted module route: /api/absensi","service":"attendance-app","timestamp":"2025-11-19T00:32:16.651Z"}
+{"level":"warn","message":"Module 'activity_log' tidak memiliki routes yang valid. Melewati...","service":"attendance-app","timestamp":"2025-11-19T00:32:16.669Z"}
+{"level":"info","message":"Mounted module route: /api/admin","service":"attendance-app","timestamp":"2025-11-19T00:32:16.687Z"}
+{"level":"info","message":"Mounted module route: /api/auth","service":"attendance-app","timestamp":"2025-11-19T00:32:16.832Z"}
+{"level":"warn","message":"Module 'file_bukti' tidak memiliki routes yang valid. Melewati...","service":"attendance-app","timestamp":"2025-11-19T00:32:16.837Z"}
+{"level":"info","message":"Mounted module route: /api/guru_mapel_kelas","service":"attendance-app","timestamp":"2025-11-19T00:32:16.858Z"}
+{"level":"info","message":"Mounted module route: /api/jurusan","service":"attendance-app","timestamp":"2025-11-19T00:32:16.888Z"}
+{"level":"info","message":"Mounted module route: /api/kelas","service":"attendance-app","timestamp":"2025-11-19T00:32:16.920Z"}
+{"level":"info","message":"Mounted module route: /api/mapel","service":"attendance-app","timestamp":"2025-11-19T00:32:16.945Z"}
+{"level":"info","message":"Mounted module route: /api/semester","service":"attendance-app","timestamp":"2025-11-19T00:32:16.969Z"}
+{"level":"info","message":"Mounted module route: /api/user","service":"attendance-app","timestamp":"2025-11-19T00:32:17.006Z"}
+{"level":"warn","message":"Module 'validation_log' tidak memiliki routes yang valid. Melewati...","service":"attendance-app","timestamp":"2025-11-19T00:32:17.011Z"}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:32:34 +0000] \"GET /api/docs/ HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:32:34.837Z","userId":null}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:32:40 +0000] \"GET /api/docs/swagger-ui-standalone-preset.js HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:32:40.480Z","userId":null}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:32:40 +0000] \"GET /api/docs/swagger-ui-bundle.js HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:32:40.601Z","userId":null}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:32:40 +0000] \"GET /api/docs/swagger-ui.css HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:32:40.798Z","userId":null}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:32:40 +0000] \"GET /api/docs/swagger-ui-init.js HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:32:40.910Z","userId":null}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:32:44 +0000] \"GET /api/docs/favicon-32x32.png HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:32:44.655Z","userId":null}
+{"level":"info","message":"::1 - - [19/Nov/2025:00:33:19 +0000] \"POST /api/auth/login HTTP/1.1\" 200 643 \"-\" \"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36\"","role":null,"service":"attendance-app","timestamp":"2025-11-19T00:33:19.238Z","userId":null}

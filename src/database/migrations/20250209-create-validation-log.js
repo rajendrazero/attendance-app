@@ -3,19 +3,32 @@ const { DataTypes } = require("sequelize");
 module.exports = {
     async up({ context: q }) {
         await q.createTable("validation_log", {
-            id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+            },
 
             absensi_id: {
                 type: DataTypes.INTEGER,
-                references: { model: "absensi", key: "id" }
+                allowNull: false,
+                references: { model: "absensi", key: "id" },
+                onDelete: "CASCADE",
+                onUpdate: "CASCADE"
             },
 
             validator_id: {
                 type: DataTypes.INTEGER,
-                references: { model: "users", key: "id" }
+                allowNull: true,
+                references: { model: "users", key: "id" },
+                onDelete: "SET NULL",
+                onUpdate: "CASCADE"
             },
 
-            keterangan: { type: DataTypes.STRING(255) },
+            status_sebelum: { type: DataTypes.STRING(20) },
+            status_sesudah: { type: DataTypes.STRING(20) },
+
+            action: { type: DataTypes.STRING(50), allowNull: false },
 
             timestamp: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
         });

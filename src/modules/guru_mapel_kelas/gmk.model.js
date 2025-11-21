@@ -15,6 +15,7 @@ const GuruMapelKelas = sequelize.define(
     tahun_ajaran: { type: DataTypes.STRING(9), allowNull: false },
 
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
     tableName: "guru_mapel_kelas",

@@ -26,9 +26,9 @@ module.exports = {
             nama_lengkap: { type: DataTypes.STRING(100), allowNull: false },
 
             kelas_id: {
-  type: DataTypes.INTEGER,
-  allowNull: true
-},
+                type: DataTypes.INTEGER,
+                allowNull: true
+            },
 
             jurusan_id: {
                 type: DataTypes.INTEGER,
@@ -38,7 +38,14 @@ module.exports = {
             },
 
             is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+
             last_login: { type: DataTypes.DATE },
+
+            // FIELD BARU
+            token_version: {
+                type: DataTypes.INTEGER,
+                defaultValue: 0
+            },
 
             created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
             updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }

@@ -11,6 +11,7 @@ const Mapel = sequelize.define(
     nama_mapel: { type: DataTypes.STRING(50), allowNull: false },
 
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   },
   {
     tableName: "mapel",

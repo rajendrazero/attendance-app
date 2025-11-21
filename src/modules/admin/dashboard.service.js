@@ -3,119 +3,167 @@ const { Op, fn, col, literal } = require("sequelize");
 const User = require("../user/user.model");
 const Absensi = require("../absensi/absensi.model");
 const Kelas = require("../kelas/kelas.model");
-const Jurusan = require("../jurusan/jurusan.model");
 const ActivityLog = require("../activity_log/activityLog.model");
-const { fromSequelizeFindAndCount } = require("../../utils/pagination");
 
 class DashboardService {
-  /**
-   * Summary counts and today attendance
-   */
   async getDashboardStats({ date = null }) {
-    const today = date || new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = date || new Date().toISOString().slice(0, 10);
 
-    // totals
+    // ======================
+    // SUMMARY UTAMA
+    // ======================
     const totalSiswa = await User.count({ where: { role: "siswa" } });
+
     const totalGuru = await User.count({
       where: { role: { [Op.in]: ["guru_mapel", "wali_kelas", "perangkat_kelas"] } }
     });
+
     const totalKelas = await Kelas.count();
 
-    // kehadiran hari ini (persentase hadir dari total siswa)
-    const hadirToday = await Absensi.count({
-      where: { tanggal: today, status: "hadir" }
-    });
+    // ======================
+    // KEHADIRAN HARI INI
+    // ======================
+    const hadirToday = await Absensi.count({ where: { tanggal: today, status: "hadir" } });
 
     const totalToday = await Absensi.count({ where: { tanggal: today } });
 
-    const kehadiranHariIni = totalToday === 0 ? 0 : (hadirToday / totalSiswa) * 100;
+    const kehadiranHariIni =
+      totalSiswa === 0 ? 0 : (hadirToday / totalSiswa) * 100;
 
-    // rata-rata bulanan: per siswa rata-rata hadir dalam 30 hari terakhir
+    // ======================
+    // RATA-RATA HADIR 30 HARI
+    // ======================
     const thirtyAgo = new Date();
     thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+
+    const dateStart = thirtyAgo.toISOString().slice(0, 10);
+
     const totalHadir30 = await Absensi.count({
-      where: { status: "hadir", tanggal: { [Op.between]: [thirtyAgo.toISOString().slice(0,10), today] } }
+      where: {
+        status: "hadir",
+        tanggal: { [Op.between]: [dateStart, today] }
+      }
     });
 
-    const rataRataBulanan = totalSiswa === 0 ? 0 : (totalHadir30 / (totalSiswa * 30)) * 100;
+    const rataRataBulanan =
+      totalSiswa === 0 ? 0 : (totalHadir30 / (totalSiswa * 30)) * 100;
 
-    // top performers (kelas) — rata-rata kehadiran per kelas (30 hari)
+    // ======================
+    // TOP KELAS (30 HARI)
+    // ======================
     const topKelas = await Absensi.findAll({
       attributes: [
         [literal("siswa.kelas_id"), "kelas_id"],
-        [fn("COUNT", literal(`CASE WHEN status='hadir' THEN 1 END`)), "hadir_count"],
-        [fn("COUNT", col("Absensi.id")), "total_count"]
+        [
+          literal("SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END)"),
+          "hadir_count"
+        ],
+        [literal("COUNT(*)"), "total_count"],
+        [
+          literal(
+            "(SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END) / NULLIF(COUNT(*),0)) * 100"
+          ),
+          "persentase"
+        ]
       ],
-      include: [{ model: User, as: "siswa", attributes: [] }],
-      where: { tanggal: { [Op.between]: [thirtyAgo.toISOString().slice(0,10), today] } },
+      include: [
+        {
+          model: User,
+          as: "siswa",
+          attributes: []
+        }
+      ],
+      where: {
+        tanggal: { [Op.between]: [dateStart, today] }
+      },
       group: ["siswa.kelas_id"],
-      order: [[literal("hadir_count / NULLIF(total_count,0)"), "DESC"]],
+      order: [literal("persentase DESC")],
       limit: 5,
       raw: true
     });
 
-    // map kelas names
-    const kelasIds = topKelas.map(k => k.kelas_id).filter(Boolean);
+    // Map nama kelas
+    const kelasIds = topKelas.map((k) => k.kelas_id).filter(Boolean);
     const kelasMap = {};
     if (kelasIds.length) {
       const kelasRows = await Kelas.findAll({ where: { id: kelasIds } });
-      kelasRows.forEach(k => (kelasMap[k.id] = k.nama_kelas));
+      kelasRows.forEach((k) => (kelasMap[k.id] = k.nama_kelas));
     }
 
-    const topPerformers = topKelas.map(k => ({
+    const topPerformers = topKelas.map((k) => ({
       kelas_id: k.kelas_id,
       nama_kelas: kelasMap[k.kelas_id] || null,
-      hadir_count: parseInt(k.hadir_count, 10),
-      total_count: parseInt(k.total_count, 10),
-      persentase: k.total_count ? +( (k.hadir_count / k.total_count) * 100 ).toFixed(2) : 0
+      hadir_count: Number(k.hadir_count),
+      total_count: Number(k.total_count),
+      persentase: Number(k.persentase.toFixed(2))
     }));
 
-    // problematic students: siswa dengan alpha >= threshold (configurable later)
-    // default threshold 5 in 30 days
+    // ======================
+    // STUDENTS WITH HIGH ALPHA
+    // ======================
     const problematicThreshold = 5;
+
     const alphaRows = await Absensi.findAll({
       attributes: [
         "student_id",
-        [fn("COUNT", literal(`CASE WHEN status='tanpa_keterangan' THEN 1 END`)), "alpha_count"]
+        [
+          literal(
+            "SUM(CASE WHEN status='tanpa_keterangan' THEN 1 ELSE 0 END)"
+          ),
+          "alpha_count"
+        ]
       ],
-      where: { tanggal: { [Op.between]: [thirtyAgo.toISOString().slice(0,10), today] } },
+      where: {
+        tanggal: { [Op.between]: [dateStart, today] }
+      },
       group: ["student_id"],
-      having: literal(`COUNT(CASE WHEN status='tanpa_keterangan' THEN 1 END) >= ${problematicThreshold}`),
+      having: literal(
+        `SUM(CASE WHEN status='tanpa_keterangan' THEN 1 ELSE 0 END) >= ${problematicThreshold}`
+      ),
       raw: true
     });
 
     const problematicStudents = [];
     if (alphaRows.length) {
-      const studentIds = alphaRows.map(r => r.student_id);
-      const users = await User.findAll({ where: { id: studentIds }, attributes: ["id", "nama_lengkap", "nisn", "kelas_id"] });
-      const userMap = {};
-      users.forEach(u => (userMap[u.id] = u));
+      const studentIds = alphaRows.map((r) => r.student_id);
+      const users = await User.findAll({
+        where: { id: studentIds },
+        attributes: ["id", "nama_lengkap", "nisn", "kelas_id"]
+      });
 
-      alphaRows.forEach(r => {
+      const userMap = {};
+      users.forEach((u) => (userMap[u.id] = u));
+
+      alphaRows.forEach((r) => {
         const u = userMap[r.student_id];
         problematicStudents.push({
           id: r.student_id,
           nama: u ? u.nama_lengkap : null,
           nisn: u ? u.nisn : null,
           kelas_id: u ? u.kelas_id : null,
-          total_alpha: parseInt(r.alpha_count, 10)
+          total_alpha: Number(r.alpha_count)
         });
       });
     }
 
-    // recent activities (limit 10)
+    // ======================
+    // RECENT ACTIVITY LOG
+    // ======================
     const recentActivities = await ActivityLog.findAll({
       limit: 10,
       order: [["timestamp", "DESC"]],
       raw: true
     });
 
+    // ======================
+    // RESPONSE
+    // ======================
     return {
       total_siswa: totalSiswa,
       total_guru: totalGuru,
       total_kelas: totalKelas,
-      kehadiran_hari_ini: +kehadiranHariIni.toFixed(2),
-      rata_rata_bulanan: +rataRataBulanan.toFixed(2),
+      kehadiran_hari_ini: Number(kehadiranHariIni.toFixed(2)),
+      rata_rata_bulanan: Number(rataRataBulanan.toFixed(2)),
       top_performers: topPerformers,
       problematic_students: problematicStudents,
       recent_activities: recentActivities

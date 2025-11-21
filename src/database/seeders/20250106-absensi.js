@@ -2,24 +2,24 @@ module.exports = {
     async up({ context: q }) {
         await q.bulkInsert("absensi", [
             {
+                id: 1,
                 student_id: 3,
-                tanggal: "2025-11-10",
-                jam_ke: null,
+                tanggal: "2024-09-01",
+                jam_ke: 1,
                 status: "hadir",
                 keterangan: null,
                 bukti_file: null,
-                created_by: 2,
-                is_validated: true,
-                validated_by: 2,
-                validated_at: new Date(),
-                mapel_id: null,
                 semester_id: 1,
-                created_at: new Date()
+                mapel_id: 1,
+                created_by: 2,
+                validated_by: null,
+                created_at: new Date(),
+                validated_at: null,
+                is_validated: false
             }
         ]);
     },
-
     async down({ context: q }) {
-        await q.bulkDelete("absensi", null);
+        await q.bulkDelete("absensi");
     }
 };

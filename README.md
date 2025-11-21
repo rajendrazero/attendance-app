@@ -1,545 +1,456 @@
-=========================================
+Berikut adalah README.md versi profesional, dirancang supaya:
 
-1. STRUKTUR FOLDER FINAL
+Newbie cepat paham
 
-=========================================
+Developer senior tetap dapat overview arsitektur
 
-my-attendance-app/
-└── src/
-    ├── config/
-    │   ├── db.js
-    │   ├── associations.js
-    ├── middleware/
-    │   ├── auth.middleware.js
-    │   ├── rbac.middleware.js
-    │   └── rateLimit.middleware.js
-    ├── modules/
-    │   ├── user/
-    │   │   ├── user.model.js
-    │   ├── activity_log/
-    │   │   ├── activityLog.model.js
-    │   ├── auth/
-    │   │   ├── auth.controller.js
-    │   │   ├── auth.service.js
-    │   │   ├── password.controller.js
-    │   │   ├── password.service.js
-    │   │   ├── refreshToken.model.js
-    │   │   ├── auth.routes.js
-    │   │   └── index.js (opsional)
-    ├── app.js
-    └── server.js
+Dokumentasi tetap AI-friendly sehingga ChatGPT/AION bisa membaca ulang dan langsung memahami seluruh alur sistem
 
-.env
+Struktur rapih, modular, dan bisa langsung dipakai di GitHub
+
+
+README ini mencakup seluruh fitur, konsep, arsitektur, flow absensi, RBAC, scheduler, upload file, swagger, migration, modular module loader, dan teknologi utama.
 
 
 ---
 
-=========================================
+Attendance Management System – Enterprise Grade (Node.js + Express + Sequelize)
 
-2. DEPENDENSI YANG DIPERLUKAN
+Platform absensi sekolah berbasis sistem akademik modern: mendukung absensi harian, absensi per-jam mapel, validasi guru mapel, rekap lengkap, RBAC, semester, upload bukti file, dan scheduler otomatis.
 
-=========================================
-
-Install:
-
-npm install bcryptjs jsonwebtoken express-rate-limit dotenv
+Dirancang agar newbie mudah belajar, dan developer senior dapat langsung scale.
 
 
 ---
 
-=========================================
+1. Teknologi yang Digunakan
 
-3. ENVIRONMENT VARIABLES
+Layer	Teknologi
 
-=========================================
-
-Tambahkan ke .env:
-
-JWT_SECRET=supersecretjwt
-REFRESH_TOKEN_SECRET=supersecretrefresh
-ACCESS_TOKEN_EXPIRES=1h
-REFRESH_TOKEN_EXPIRES_DAYS=30
-
-
----
-
-=========================================
-
-4. DATABASE YANG BERHUBUNGAN
-
-=========================================
-
-1. Tabel users
-
-Dipakai untuk login & password storage.
-
-2. Tabel refresh_tokens
-
-Dipakai untuk menyimpan refresh token agar bisa logout/revoke.
-
-3. Tabel activity_log
-
-Mencatat semua aktivitas:
-
-login
-
-logout
-
-register
-
-change_password
-
-admin_reset_password
+Backend	Node.js, Express.js
+ORM	Sequelize (MySQL/MariaDB)
+Auth	JWT Access + Refresh Token
+RBAC	Role-Based Access Control
+File Upload	Multer
+Scheduler	node-cron
+Logging	Winston + Daily Rotate File
+API Docs	Swagger OpenAPI 3 (Modular YAML)
+Architecture	Modular / Domain Driven Design (DDD)
+Migration / Seeder	Sequelize CLI Modern
 
 
 
 ---
 
-=========================================
+2. Fitur Utama Sistem
 
-5. MIDDLEWARE YANG DIPAKAI
+2.1 Modul Absensi
 
-=========================================
+Absensi Harian (Wali Kelas / Perangkat Kelas)
 
-A. auth.middleware.js
+Absensi Per Jam (Guru Mapel)
 
-Verifikasi access token JWT, mengambil:
+Validasi Absensi
 
-req.user = {
-   id: user_id,
-   role: user_role
-}
+Tracking status absensi
 
+Rekap Harian / Bulanan / Kelas
 
----
+Ranking kehadiran siswa
 
-B. rbac.middleware.js
+Riwayat absensi siswa
 
-Cek role yang diizinkan.
+Export CSV / PDF
 
-Contoh:
-
-allowRoles("super_admin", "bk")
+Upload bukti (file foto/surat izin)
 
 
----
+2.2 Manajemen Data Master
 
-C. rateLimit.middleware.js
+User + Role (RBAC)
 
-Limit login:
+Kelas
 
-max 5x attempt / 5 menit
+Jurusan
 
+Mata Pelajaran
 
+Relasi Guru–Mapel–Kelas (GMK)
 
----
-
-=========================================
-
-6. ROUTES AUTH LENGKAP
-
-=========================================
-
-Semua route berada di:
-
-src/modules/auth/auth.routes.js
-
-Berikut daftar endpoint:
-
-METHOD	URL	AUTH	ROLE	DESKRIPSI
-
-POST	/api/auth/login	public	-	Login username/password
-POST	/api/auth/register	optional	super_admin	Membuat user baru
-POST	/api/auth/token/refresh	public	-	Membuat access token baru dari refresh token
-POST	/api/auth/logout	access_token	user	Logout + revoke refresh token
-GET	/api/auth/profile	access_token	user	Melihat profil diri sendiri
-POST	/api/auth/change-password	access_token	user	Ganti password sendiri
-POST	/api/auth/admin/reset-password/:id	access_token	super_admin	Admin reset password user lain
+Semester (aktif & historis)
 
 
+2.3 Keamanan & Logging
 
----
+JWT Access + Refresh
 
-=========================================
+Password hashing (bcrypt)
 
-7. LOGIKA FITUR-FITUR AUTH
+Token versioning
 
-=========================================
+Activity Log
 
-Sekarang kita dokumentasikan logika internal setiap operasi.
+Validation Log
+
+
+2.4 Scheduler Otomatis
+
+Tiap hari jam 05:00:
+
+1. Auto validate absensi lama
+
+
+2. Auto reminder siswa alpha tinggi
+
+
+3. Auto clean orphan files
+
+
+4. Auto export semester (jika semester berakhir)
+
+
 
 
 ---
 
-7.1 REGISTER (admin atau publik)
+3. Struktur Proyek
 
-Input:
+src/
+ ├── app.js
+ ├── server.js
+ ├── config/
+ │    ├── db.js
+ │    ├── associations.js
+ │    ├── scheduler.js
+ │    ├── logger.js
+ │    └── swagger/
+ ├── modules/
+ │    ├── absensi/
+ │    ├── user/
+ │    ├── kelas/
+ │    ├── jurusan/
+ │    ├── mapel/
+ │    ├── gmk/
+ │    ├── semester/
+ │    ├── file_bukti/
+ │    ├── activity_log/
+ │    └── validation_log/
+ ├── database/
+ │    ├── migrations/
+ │    ├── seeders/
+ │    ├── migrate.js
+ │    └── seed.js
+ ├── middleware/
+ ├── docs/ (Modular Swagger)
+ └── uploads/
 
-username
-password
-role
-nama_lengkap
+Arsitektur ini memisahkan controller, service, route, model, validation per modul.
+
+
+---
+
+4. Alur Kerja Sistem (Business Flow)
+
+4.1 Alur Absensi Harian (Wali Kelas / Perangkat Kelas)
+
+User Input → Absensi Harian → Simpan → Pending Validasi (opsional)
+
+4.2 Alur Absensi Per Jam (Guru Mapel)
+
+Guru Mapel → Input Absensi Jam Ke → Pending Validasi → Guru mapel validasi → Selesai
+
+4.3 Alur Validasi
+
+absensi.is_validated = false → menunggu
+guru_mapel klik validasi → log dicatat → selesai
+
+4.4 Alur Semester
+
+Tanggal absensi → dicek masuk semester mana → otomatis semester_id ditentukan
+
+4.5 Scheduler Harian
+
+Jam 05:00:
+ - Validasi absensi lama (>= 3 hari)
+ - Reminder siswa alpha (>=5 kali)
+ - Bersihkan file bukti yatim
+ - Export absensi semester jika hari ini akhir semester
+
+
+---
+
+5. Role & RBAC
+
+Role	Hak Akses
+
+super_admin	Full akses
+admin/bk	Monitoring, rekap, pengawasan
+wali_kelas	Absensi harian
+perangkat_kelas	Absensi harian
+guru_mapel	Absensi jam ke, validasi
+siswa	Lihat riwayat absensi
+
+
+Middleware:
+auth.middleware.js untuk JWT
+rbac.middleware.js untuk role-based control
+
+
+---
+
+6. Database Schema (Ringkas)
+
+User
+
+id, nisn, email, username
+
+role (enum)
+
+kelas_id, jurusan_id
+
+is_active
+
+last_login
+
+
+Absensi
+
+student_id
+
+tanggal
+
+jam_ke (nullable)
+
+status
+
+bukti_file
+
+semester_id
+
+mapel_id
+
+created_by
+
+validated_by
+
+
+FileBukti
+
+filename
+
+original_name
+
+path
+
+mime_type
+
+size
+
+uploaded_by
+
+absensi_id
+
+
+GMK (Guru–Mapel–Kelas)
+
+guru_id
+
+mapel_id
+
 kelas_id
-jurusan_id
-
-Langkah logika:
-
-1. Periksa apakah username sudah ada
 
 
-2. Hash password menggunakan bcrypt 10 salt rounds
+Semester
 
+tahun_ajaran
 
-3. Buat user baru di DB
+semester
 
-
-4. Catat activity_log:
-
-action: register_user
-description: User X dibuat oleh admin Y
-
-
-5. Return data user
-
-
-
-Output:
-
-{ success: true, message: "User berhasil dibuat", data: { ... } }
-
-
----
-
-7.2 LOGIN (rate-limit protected)
-
-Input:
-
-username
-password
-
-Logika:
-
-1. Cek apakah user ada
-
-
-2. Compare password vs hash
-
-
-3. Update last_login
-
-
-4. Issued access token (JWT)
-
-
-5. Issued refresh token (JWT) → simpan di DB
-
-
-6. Catat activity_log (login)
-
-
-7. Return token & user profile
-
+start_date / end_date
 
 
 
 ---
 
-7.3 REFRESH TOKEN
+7. API Endpoints (Ringkas)
 
-Input:
-
-refresh_token
-
-Logika:
-
-1. Cari refresh token di DB
-
-
-2. Jika tidak ada → invalid
-
-
-3. Verifikasi JWT refresh token
-
-
-4. Ambil user_id dari token
-
-
-5. Buat access token baru
-
-
-6. Return access token baru
-
-
-
-
----
-
-7.4 LOGOUT
-
-Input:
-
-refresh_token
-
-Logika:
-
-1. Cari refresh token di DB
-
-
-2. Hapus dari DB → token tidak valid lagi
-
-
-3. Catat activity_log (logout)
-
-
-4. Return success
-
-
-
-
----
-
-7.5 GET PROFILE
-
-Logika:
-
-1. Ambil req.user.id dari token
-
-
-2. Query detail user
-
-
-3. Return data user
-
-
-
-
----
-
-7.6 CHANGE PASSWORD (Hanya user sendiri)
-
-Input:
-
-old_password
-new_password
-
-Logika:
-
-1. Verify user exist
-
-
-2. Compare old password
-
-
-3. Jika gagal → WRONG_PASSWORD
-
-
-4. Hash new_password
-
-
-5. Simpan
-
-
-6. Catat activity_log (change_password)
-
-
-
-
----
-
-7.7 ADMIN RESET PASSWORD (super_admin only)
-
-Input:
-
-new_password
-
-Logika:
-
-1. Cek user exist
-
-
-2. Hash new_password
-
-
-3. Simpan ke DB
-
-
-4. Catat activity_log (admin_reset_password)
-
-
-
-
----
-
-=========================================
-
-8. API ROUTE EXAMPLES
-
-=========================================
-
-8.1 LOGIN
+Auth
 
 POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "superadmin",
-  "password": "password123"
-}
-
-Response:
-
-{
-  "success": true,
-  "data": {
-     "token": "<access>",
-     "refresh_token": "<refresh>"
-  }
-}
-
-
----
-
-8.2 REFRESH TOKEN
-
-POST /api/auth/token/refresh
-{
-  "refresh_token": "<token>"
-}
-
-
----
-
-8.3 LOGOUT
-
 POST /api/auth/logout
-Authorization: Bearer <access>
+POST /api/auth/refresh
 
-{
-  "refresh_token": "<token>"
-}
+User
 
+CRUD + filter + pagination
 
----
+Absensi
 
-8.4 CHANGE PASSWORD (User)
+POST /api/absensi/input-harian
+POST /api/absensi/input-jam
+POST /api/absensi/validate
+GET  /api/absensi/rekap-harian
+GET  /api/absensi/rekap-bulanan
+GET  /api/absensi/ranking-siswa
 
-POST /api/auth/change-password
-Authorization: Bearer <access>
+File Upload (Absensi)
 
-{
-  "old_password": "lama123",
-  "new_password": "baru123"
-}
+POST /api/absensi/upload-bukti
 
+Master Data
 
----
+/api/kelas
 
-8.5 ADMIN RESET PASSWORD
+/api/jurusan
 
-POST /api/auth/admin/reset-password/7
-Authorization: Bearer <super_admin_access>
+/api/mapel
 
-{
-  "new_password": "passwordBaru77"
-}
+/api/guru_mapel_kelas
 
+/api/semester
 
----
-
-=========================================
-
-9. END-TO-END FLOW
-
-=========================================
-
-1. Register user baru
-
-→ hash password
-→ simpan user
-→ log “register_user”
-
-2. Login
-
-→ verifikasi username/password
-→ masuk DB activity_log
-→ generate access + refresh
-→ refresh_token disimpan di tabel refresh_tokens
-
-3. Mengakses halaman protected
-
-→ gunakan access_token
-
-4. Access token expired
-
-→ gunakan refresh_token → dapat access_token baru
-
-5. Logout
-
-→ refresh_token dihapus dari DB
-
-6. Ganti password diri sendiri
-
-→ verifikasi old_password
-→ hash new_password
-→ save
-→ activity_log
-
-7. Admin reset password user lain
-
-→ hash new_password
-→ save
-→ activity_log
 
 
 ---
 
-## Logging System
+8. Scheduler (Automation System)
 
-Aplikasi menggunakan Winston + Daily Rotate File.
+Dijalankan setiap hari:
 
-### Fitur:
-- Log harian otomatis (`logs/app-YYYY-MM-DD.log`)
-- Auto-compress & auto-delete (30 hari)
-- Integrasi dengan Morgan (HTTP logging)
-- Request-ID tracking
-- User context logging (userId + role)
-- Format JSON → siap dikirim ke ELK/Loki
-
-### Cara kerja Request-ID:
-Setiap request memiliki header:
-X-Request-ID: <uuid>
-
-Semua log akan memiliki requestId yang sama, sehingga mudah ditrace.
-
-### User Context Logging:
-Jika user terautentikasi, setiap log otomatis menyertakan:
-- userId
-- role
+1. Auto validate absensi lama
 
 
-## Monitoring & Tracing
+2. Auto reminder siswa alpha
 
-### Opsi 1: ELK Stack (Elasticsearch + Logstash + Kibana)
-- Konfigurasi winston transport → Elasticsearch
-- Visualisasi log dan tracing
-- Query log dengan userId, role, requestId
 
-### Opsi 2: Grafana Loki
-- Sangat ringan
-- Winston → loki-promtail
-- Query dengan label: requestId, userId
+3. Auto bersihkan file yatim (tidak ada di DB)
 
-### Opsi 3: PM2 Monitoring
-- `pm2 monit`
-- CPU / Memory live metrics
-- Log streaming real-time
 
-### Integrasi Request-ID:
-Semua log → memiliki requestId untuk memudahkan tracing:
-Contoh:
-{
-  requestId: "ff3a-11c3-aaa1",
-  userId: 1,
-  role: "super_admin",
-  message: "Validasi absensi"
-}
+4. Auto export semester ke CSV
+
+
+
+File konfigurasi: .env
+
+SCHEDULER_CRON_DAILY=0 5 * * *
+AUTO_VALIDATE_AFTER_DAYS=3
+REMINDER_ALPHA_THRESHOLD=5
+AUTO_DELETE_ORPHAN_DAYS=7
+AUTO_EXPORT_SEMESTER_DIR=./exports/semester
+
+
+---
+
+9. Swagger Documentation (Modular YAML)
+
+Folder:
+
+src/docs/
+ ├── openapi.yaml
+ ├── components/
+ ├── paths/
+ └── schemas/
+
+Cara akses:
+
+http://localhost:3000/docs
+
+
+---
+
+10. Cara Menjalankan Proyek
+
+Install dependencies
+
+npm install
+
+Setup Database
+
+1. Buat database absensi_db
+
+
+2. Pastikan .env terisi
+
+
+
+Jalankan Migration
+
+npm run migrate
+
+Jalankan Server
+
+npm run dev
+
+
+---
+
+11. Folder Upload
+
+uploads/
+ ├── bukti/  ← Upload bukti absensi
+ └── data-siswa/
+
+
+---
+
+12. Kualitas Kode
+
+Logging profesional (winston)
+
+Pemisahan layer (controller-service-model)
+
+Validasi input (Joi)
+
+Error handler global
+
+Request ID middleware
+
+Response formatter middleware
+
+
+
+---
+
+13. Untuk AI/Developer yang Baru Masuk
+
+Jika developer baru membaca proyek ini, cukup baca:
+
+1. README ini
+
+
+2. src/modules/<modul>/
+
+
+3. src/database/migrations/
+
+
+4. src/config/scheduler.js
+
+
+5. src/docs/
+
+
+
+Maka langsung paham struktur + cara kerja seluruh sistem.
+
+
+---
+
+14. Lisensi
+
+MIT
+
+
+---
+
+15. Butuh versi README berbentuk website (mkdocs / docusaurus)?
+
+Katakan saja:
+“AION buatkan dokumentasi versi website.”
+
+
+---
+
+Selesai.
+Jika ingin AION membuat README versi premium dengan diagram UML / sequence diagram / ERD, tinggal bilang:
+“AION generate ERD + Sequence Diagram.”

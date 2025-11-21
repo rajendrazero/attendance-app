@@ -2,15 +2,19 @@ const { DataTypes } = require("sequelize");
 
 module.exports = {
     async up({ context: q }) {
-        await q.createTable("semesters", {
-            id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        await q.createTable("semester", {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+            },
 
-            tahun_ajaran: { 
-                type: DataTypes.STRING(20), 
-                allowNull: false 
-            }, 
-            semester: { 
-                type: DataTypes.INTEGER, 
+            tahun_ajaran: {
+                type: DataTypes.STRING(20),
+                allowNull: false
+            },
+            semester: {
+                type: DataTypes.INTEGER,
                 allowNull: false,
                 comment: "1 = Ganjil, 2 = Genap"
             },

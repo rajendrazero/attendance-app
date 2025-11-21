@@ -3,8 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "dev": "node src/server.js",
+    "prod": "pm2 start ecosystem.config.js",
+    "prod-reload": "pm2 reload attendance-app",
+    "prod-stop": "pm2 stop attendance-app",
+    "prod-delete": "pm2 delete attendance-app",
     "migrate": "node src/database/migrate.js",
     "migrate:down": "node src/database/migrate-down.js",
     "seed": "node src/database/seed.js"
@@ -37,5 +41,8 @@
     "umzug": "^3.8.2",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }
