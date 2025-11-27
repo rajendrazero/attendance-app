@@ -28,7 +28,8 @@ class KelasService {
   async list({ q, jurusan_id, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
     const where = {};
-    if (q) where.nama_kelas = { [Op.iLike]: `%${q}%` };
+    //co-pilot {Perbaikan: ganti Op.iLike (Postgres) ke Op.like agar kompatibel dengan MySQL/MariaDB}
+    if (q) where.nama_kelas = { [Op.like]: `%${q}%` };
     if (jurusan_id) where.jurusan_id = jurusan_id;
     return Kelas.findAndCountAll({ where, limit, offset, order: [["nama_kelas", "ASC"]] });
   }

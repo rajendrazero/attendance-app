@@ -35,7 +35,8 @@ class JurusanService {
   async list({ q, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
     const where = {};
-    if (q) where.nama_jurusan = { [Op.iLike]: `%${q}%` };
+    //co-pilot {Perbaikan: ganti Op.iLike (Postgres) ke Op.like agar kompatibel dengan MySQL/MariaDB}
+    if (q) where.nama_jurusan = { [Op.like]: `%${q}%` };
     const result = await Jurusan.findAndCountAll({ where, limit, offset, order: [["nama_jurusan","ASC"]] });
     return result;
   }

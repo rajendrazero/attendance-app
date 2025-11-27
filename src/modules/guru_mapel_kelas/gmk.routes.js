@@ -27,16 +27,30 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *       properties:
  *         id:
  *           type: integer
+ *           example: 12
  *         guru_id:
  *           type: integer
+ *           example: 5
  *         mapel_id:
  *           type: integer
+ *           example: 8
  *         kelas_id:
  *           type: integer
+ *           example: 3
+ *         tahun_ajaran:
+ *           type: string
+ *           example: "2024/2025"
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *         updated_at:
+ *           type: string
+ *           format: date-time
  *       required:
  *         - guru_id
  *         - mapel_id
  *         - kelas_id
+ *         - tahun_ajaran
  */
 
 /* ------------------------------------------------------------
@@ -55,14 +69,7 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               guru_id:
- *                 type: integer
- *               mapel_id:
- *                 type: integer
- *               kelas_id:
- *                 type: integer
+ *             $ref: '#/components/schemas/GMK'
  *     responses:
  *       201:
  *         description: Relasi GMK berhasil dibuat

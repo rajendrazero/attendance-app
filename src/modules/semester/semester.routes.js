@@ -142,7 +142,23 @@ router.post("/", auth, allowRoles("super_admin"), controller.create);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Semester'
+ *             type: object
+ *             required: [tahun_ajaran, semester, start_date, end_date]
+ *             properties:
+ *               tahun_ajaran:
+ *                 type: string
+ *                 example: "2025/2026"
+ *               semester:
+ *                 type: integer
+ *                 example: 1
+ *               start_date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-07-01"
+ *               end_date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-12-20"
  *     responses:
  *       200:
  *         description: Semester berhasil diperbarui

@@ -126,7 +126,6 @@ const PORT = process.env.PORT || 3000;
 })();
 **/
 
-
 // src/server.js
 require("dotenv").config();
 
@@ -139,74 +138,72 @@ const scheduler = require("./config/scheduler");
 const PORT = process.env.PORT || 3000;
 
 (async () => {
-try {
-// 1. TEST DB CONNECTION
-await sequelize.authenticate();
-console.log("✅ Database connected.");
+    try {
+        // 1. TEST DB CONNECTION
+        await sequelize.authenticate();
+        console.log("✅ Database connected.");
 
-// 2. RUN MIGRATIONS (HARUS SEBELUM ASSOCIATIONS)  
-    console.log("Running migrations...");  
-    await migrator.up();  
-    console.log("✅ Migrations completed.");  
+        // 2. RUN MIGRATIONS (HARUS SEBELUM ASSOCIATIONS)
+        //console.log("Running migrations...");
+        //await migrator.up();
+        //console.log("✅ Migrations completed.");
 
-    // 3. LOAD ASSOCIATIONS (JANGAN ADA .sync() DI DALAMNYA)  
-    if (typeof loadAssociations === "function") {  
-        loadAssociations();  
-        console.log("✅ Associations loaded.");  
-    } else {  
-        console.warn("⚠️ associations.js not found or invalid function.");  
-    }  
+        // 3. LOAD ASSOCIATIONS (JANGAN ADA .sync() DI DALAMNYA)
+        if (typeof loadAssociations === "function") {
+            loadAssociations();
+            console.log("✅ Associations loaded.");
+        } else {
+            console.warn("⚠️ associations.js not found or invalid function.");
+        }
 
-    // 4. OPTIONAL SEEDER  
-    // await seeder.up();  
+        // 4. OPTIONAL SEEDER
+        // await seeder.up();
 
-    // 5. START SCHEDULER  
-    scheduler.start();  
+        // 5. START SCHEDULER
+        scheduler.start();
 
-    // 6. START SERVER  
-    const server = app.listen(PORT, () => {  
-        console.log(  
-            `🚀 Server running at http://localhost:${PORT} (env: ${  
-                process.env.NODE_ENV || "development"  
-            })`  
-        );  
-    });  
+        // 6. START SERVER
+        const server = app.listen(PORT, () => {
+            console.log(
+                `🚀 Server running at http://localhost:${PORT} (env: ${
+                    process.env.NODE_ENV || "development"
+                })`
+            );
+        });
 
-    // 7. GRACEFUL SHUTDOWN  
-    const gracefulShutdown = async () => {  
-        console.log("🔄 Graceful shutdown started...");  
-        try {  
-            await sequelize.close();  
-            console.log("✅ DB connection closed.");  
-        } catch (err) {  
-            console.error("Error closing DB:", err);  
-        }  
-        server.close(() => {  
-            console.log("✅ HTTP server closed.");  
-            process.exit(0);  
-        });  
+        // 7. GRACEFUL SHUTDOWN
+        const gracefulShutdown = async () => {
+            console.log("🔄 Graceful shutdown started...");
+            try {
+                await sequelize.close();
+                console.log("✅ DB connection closed.");
+            } catch (err) {
+                console.error("Error closing DB:", err);
+            }
+            server.close(() => {
+                console.log("✅ HTTP server closed.");
+                process.exit(0);
+            });
 
-        setTimeout(() => {  
-            console.error("Force exit after timeout.");  
-            process.exit(1);  
-        }, 10000).unref();  
-    };  
+            setTimeout(() => {
+                console.error("Force exit after timeout.");
+                process.exit(1);
+            }, 10000).unref();
+        };
 
-    process.on("SIGINT", gracefulShutdown);  
-    process.on("SIGTERM", gracefulShutdown);  
+        process.on("SIGINT", gracefulShutdown);
+        process.on("SIGTERM", gracefulShutdown);
 
-    process.on("unhandledRejection", (reason, p) => {  
-        console.error("Unhandled Rejection:", reason);  
-    });  
+        process.on("unhandledRejection", (reason, p) => {
+            console.error("Unhandled Rejection:", reason);
+        });
 
-    process.on("uncaughtException", err => {  
-        console.error("Uncaught Exception:", err);  
-        gracefulShutdown();  
-    });  
-
-} catch (err) {  
-    console.error("❌ Failed to start server:", err);  
-    process.exit(1);  
-}
-
+        process.on("uncaughtException", err => {
+            console.error("Uncaught Exception:", err);
+            gracefulShutdown();
+        });
+    } catch (err) {
+        console.error("❌ Failed to start server:", err);
+        process.exit(1);
+    }
 })();

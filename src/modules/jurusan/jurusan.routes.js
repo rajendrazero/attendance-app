@@ -28,9 +28,9 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *       properties:
  *         id:
  *           type: integer
- *         nama:
+ *         nama_jurusan:
  *           type: string
- *         kode:
+ *         kode_jurusan:
  *           type: string
  *       required:
  *         - nama
@@ -55,10 +55,10 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *           schema:
  *             type: object
  *             properties:
- *               nama:
+ *               nama_jurusan:
  *                 type: string
  *                 example: Rekayasa Perangkat Lunak
- *               kode:
+ *               kode_jurusan:
  *                 type: string
  *                 example: RPL
  *     responses:

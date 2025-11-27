@@ -64,16 +64,26 @@ function loadSwaggerDoc() {
     }
 
     // load paths/*
+    //co-pilot {memperbaiki merging paths: mendukung file fragment top-level dan file yang mengekspor `paths` tanpa menimpa `result.paths`}
     const pathDir = path.join(__dirname, "..", "docs", "paths");
     if (fs.existsSync(pathDir)) {
         const files = fs.readdirSync(pathDir).filter(f => f.endsWith(".yaml"));
-        result.paths = {};
+        result.paths = result.paths || {};
 
         for (const file of files) {
             const part = loadYAML(`paths/${file}`);
 
-            if (part.paths && typeof part.paths === "object") {
-                Object.assign(result.paths, part.paths);
+            // Support two formats:
+            // 1) file exports full 'paths' object: { paths: { "/api/...": { ... } } }
+            // 2) file exports top-level path fragments: { login: { post: ... }, ... }
+            // Merge accordingly without overwriting existing result.paths
+            if (part && typeof part === "object") {
+                if (part.paths && typeof part.paths === "object") {
+                    Object.assign(result.paths, part.paths);
+                } else {
+                    // top-level fragment: merge keys into paths
+                    Object.assign(result.paths, part);
+                }
             }
         }
     }

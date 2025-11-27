@@ -159,22 +159,27 @@ const revokeRefreshToken = async (refreshTokenStr, actorUserId = null) => {
   if (!stored) return false;
 
   const user = await User.findByPk(stored.user_id);
+  
+    //co-pilot {Perbaikan: pastikan tidak crash jika user sudah dihapus; increment token_version hanya jika user ada}
+    if (user) {
+        user.token_version = (user.token_version || 0) + 1;
+        await user.save();
+    }
 
-  // naikkan token_version → semua access token lama auto invalid
-  user.token_version += 1;
-  await user.save();
+    // Hapus refresh token dari DB
+    await stored.destroy();
 
-  await stored.destroy();
+    await ActivityLog.create({
+        user_id: actorUserId || stored.user_id,
+        action: "logout",
+        description: user
+            ? "Logout: token_version increment"
+            : "Logout: token revoked (user not found)",
+        resource: "auth",
+        resource_id: user ? null : stored.user_id
+    });
 
-  await ActivityLog.create({
-    user_id: actorUserId || stored.user_id,
-    action: "logout",
-    description: "Logout: token_version increment",
-    resource: "auth",
-    resource_id: null
-  });
-
-  return true;
+    return true;
 };
 
 module.exports = {

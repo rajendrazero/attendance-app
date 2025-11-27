@@ -59,6 +59,7 @@ components:
       properties:
         id: { type: integer }
         nama_mapel: { type: string }
+        kategori: { type: string }
 
     GMK:
       type: object

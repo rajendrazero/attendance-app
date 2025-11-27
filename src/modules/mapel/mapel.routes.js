@@ -28,10 +28,10 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *       properties:
  *         id:
  *           type: integer
- *         nama:
+ *         nama_mapel:
  *           type: string
  *           example: "Matematika"
- *         kode:
+ *         kode_mapel:
  *           type: string
  *           example: "MTK"
  *         kategori:

@@ -10,6 +10,8 @@ const Mapel = sequelize.define(
 
     nama_mapel: { type: DataTypes.STRING(50), allowNull: false },
 
+    kategori: { type: DataTypes.STRING(50), allowNull: true },
+
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   },

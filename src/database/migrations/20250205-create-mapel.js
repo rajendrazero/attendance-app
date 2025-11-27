@@ -10,6 +10,7 @@ module.exports = {
             },
             nama_mapel: { type: DataTypes.STRING(100), allowNull: false },
             kode_mapel: { type: DataTypes.STRING(20), unique: true },
+            kategori: { type: DataTypes.STRING(50), allowNull: true },
 
             created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
             updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }

@@ -32,7 +32,8 @@ class MapelService {
   async list({ q, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
     const where = {};
-    if (q) where.nama_mapel = { [Op.iLike]: `%${q}%` };
+    //co-pilot {Perbaikan: ganti Op.iLike (Postgres-specific) menjadi Op.like agar kompatibel dengan MySQL/MariaDB}
+    if (q) where.nama_mapel = { [Op.like]: `%${q}%` };
     return Mapel.findAndCountAll({ where, offset, limit, order: [["nama_mapel","ASC"]] });
   }
 }

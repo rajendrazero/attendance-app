@@ -10,106 +10,98 @@ const FileBukti = require("../modules/file_bukti/fileBukti.model");
 const RefreshToken = require("../modules/auth/refreshToken.model");
 const Semester = require("../modules/semester/semester.model");
 
-Semester.hasMany(Absensi, { foreignKey: "semester_id" });
-Absensi.belongsTo(Semester, { foreignKey: "semester_id" });
 module.exports = () => {
+
     /*
      * =====================
-     *  RefreshToken←→User
+     *  RefreshToken ←→ User
      * =====================
      */
     RefreshToken.belongsTo(User, { foreignKey: "user_id", as: "user" });
     User.hasMany(RefreshToken, { foreignKey: "user_id", as: "refresh_tokens" });
+
+
     /*
      * =====================
      *  USER ←→ JURUSAN
      * =====================
      */
-
-    // User belongs to Jurusan
     User.belongsTo(Jurusan, {
         foreignKey: "jurusan_id",
-        as: "jurusan"
+        as: "jurusan",
     });
 
     Jurusan.hasMany(User, {
         foreignKey: "jurusan_id",
-        as: "users"
+        as: "users",
     });
+
 
     /*
      * =====================
      *  USER ←→ KELAS
      * =====================
      */
-
     User.belongsTo(Kelas, {
         foreignKey: "kelas_id",
-        as: "kelas"
+        as: "kelas",
     });
 
     Kelas.hasMany(User, {
         foreignKey: "kelas_id",
-        as: "siswa"
+        as: "siswa",
     });
+
 
     /*
      * =============================
      *  KELAS.wali_kelas → USER
      * =============================
      */
-
     Kelas.belongsTo(User, {
         foreignKey: "wali_kelas_id",
-        as: "wali_kelas"
+        as: "wali_kelas",
     });
 
     User.hasOne(Kelas, {
         foreignKey: "wali_kelas_id",
-        as: "kelas_yang_diampu"
+        as: "kelas_yang_diampu",
     });
 
-    /*
-     * =====================
-     *  MAPEL
-     * =====================
-     */
-
-    // no relasi khusus di mapel kecuali GMK & Absensi
 
     /*
      * ==================================
      *  GURU_MAPEL_KELAS (GMK)
-     *  (many-to-many-with-extra-fields)
      * ==================================
      */
 
     GuruMapelKelas.belongsTo(User, {
         foreignKey: "guru_id",
-        as: "guru"
+        as: "guru",
     });
     User.hasMany(GuruMapelKelas, {
         foreignKey: "guru_id",
-        as: "mengajar"
+        as: "mengajar",
     });
 
     GuruMapelKelas.belongsTo(Kelas, {
         foreignKey: "kelas_id",
-        as: "kelas"
+        as: "kelas",
     });
     Kelas.hasMany(GuruMapelKelas, {
         foreignKey: "kelas_id",
-        as: "kelas_mapel"
+        as: "kelas_mapel",
     });
 
     GuruMapelKelas.belongsTo(Mapel, {
         foreignKey: "mapel_id",
-        as: "mapel"
+        as: "mapel",
     });
     Mapel.hasMany(GuruMapelKelas, {
         foreignKey: "mapel_id",
-        as: "pengampu_mapel"
+        as: "pengampu_mapel",
     });
+
 
     /*
      * =====================
@@ -117,93 +109,100 @@ module.exports = () => {
      * =====================
      */
 
-    // student yang diabsen
+    // siswa yang diabsen
     Absensi.belongsTo(User, {
         foreignKey: "student_id",
-        as: "siswa"
+        as: "siswa",
     });
     User.hasMany(Absensi, {
         foreignKey: "student_id",
-        as: "riwayat_absensi"
+        as: "riwayat_absensi",
     });
 
-    // who created the record (perangkat kelas / wali kelas)
+    // input_by
     Absensi.belongsTo(User, {
         foreignKey: "created_by",
-        as: "input_by"
+        as: "input_by",
     });
 
-    // guru mapel validator
+    // guru validator
     Absensi.belongsTo(User, {
         foreignKey: "validated_by",
-        as: "validator"
+        as: "validator",
     });
 
-    // mapel untuk absensi per-jam
+    // mapel yang mengabsen
     Absensi.belongsTo(Mapel, {
         foreignKey: "mapel_id",
-        as: "mapel"
+        as: "mapel",
     });
-    
-    Semester.hasMany(Absensi, { foreignKey: "semester_id" });
-Absensi.belongsTo(Semester, { foreignKey: "semester_id" });
+
+    // SEMESTER ↔ ABSENSI
+    Semester.hasMany(Absensi, {
+        foreignKey: "semester_id",
+        as: "absensi_semester",
+    });
+    Absensi.belongsTo(Semester, {
+        foreignKey: "semester_id",
+        as: "semester",
+    });
+
 
     /*
      * =========================
-     *  VALIDATION LOG
+     *  VALIDATION LOG ↔ ABSENSI
      * =========================
      */
-
     ValidationLog.belongsTo(Absensi, {
         foreignKey: "absensi_id",
-        as: "absensi"
+        as: "absensi_log",
     });
 
     Absensi.hasMany(ValidationLog, {
         foreignKey: "absensi_id",
-        as: "validasi_log"
+        as: "validasi_log",
     });
 
     ValidationLog.belongsTo(User, {
         foreignKey: "validator_id",
-        as: "validator"
+        as: "validator",
     });
+
 
     /*
      * =========================
      *  ACTIVITY LOG
      * =========================
      */
-
     ActivityLog.belongsTo(User, {
         foreignKey: "user_id",
-        as: "user"
+        as: "user",
     });
 
     User.hasMany(ActivityLog, {
         foreignKey: "user_id",
-        as: "aktivitas"
+        as: "aktivitas",
     });
+
 
     /*
      * =========================
-     *  FILE BUKTI
+     *  FILE BUKTI ↔ ABSENSI
      * =========================
      */
-
     FileBukti.belongsTo(User, {
         foreignKey: "uploaded_by",
-        as: "uploader"
+        as: "uploader",
     });
 
     FileBukti.belongsTo(Absensi, {
         foreignKey: "absensi_id",
-        as: "absensi"
+        as: "absensi_file",
     });
 
     Absensi.hasMany(FileBukti, {
         foreignKey: "absensi_id",
-        as: "file_bukti"
+        as: "file_bukti",
     });
 
     console.log("All associations successfully loaded.");

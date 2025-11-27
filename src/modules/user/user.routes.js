@@ -57,6 +57,32 @@ const uploadTo = require("../../middleware/upload.middleware");
  */
 
 /* ------------------------------------------------------------
+ * EXPORT CSV USER
+ * ------------------------------------------------------------*/
+/**
+ * @swagger
+ * /api/user/export:
+ *   get:
+ *     summary: Export semua user ke format CSV
+ *     tags: [User]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: File CSV hasil export
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ */
+router.get(
+    "/export",
+    auth,
+    allowRoles("super_admin", "bk", "wali_kelas"),
+    controller.exportCsv
+);
+
+/* ------------------------------------------------------------
  *  CREATE USER
  * ------------------------------------------------------------*/
 /**
@@ -125,7 +151,7 @@ router.post("/", auth, allowRoles("super_admin"), controller.create);
  *       200:
  *         description: User berhasil diperbarui
  */
-router.put("/:id", auth, allowRoles("super_admin"), controller.update);
+router.put("/:id", auth, controller.update);
 
 /* ------------------------------------------------------------
  *  DELETE USER
@@ -244,32 +270,6 @@ router.post(
     allowRoles("super_admin"),
     uploadTo("data-siswa").single("file"),
     controller.importCsv
-);
-
-/* ------------------------------------------------------------
- * EXPORT CSV USER
- * ------------------------------------------------------------*/
-/**
- * @swagger
- * /api/user/export:
- *   get:
- *     summary: Export semua user ke format CSV
- *     tags: [User]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: File CSV hasil export
- *         content:
- *           text/csv:
- *             schema:
- *               type: string
- */
-router.get(
-    "/export",
-    auth,
-    allowRoles("super_admin", "bk", "wali_kelas"),
-    controller.exportCsv
 );
 
 module.exports = router;

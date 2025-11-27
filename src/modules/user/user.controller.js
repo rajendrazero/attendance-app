@@ -14,16 +14,20 @@ class UserController {
 
     async update(req, res, next) {
         try {
+            const { id } = req.params;
+
             const result = await userService.update(
-                req.params.id,
+                parseInt(id),
                 req.body,
-                req.user.id
+                req.user // kirim actor lengkap
             );
-            return res.success(result, "User berhasil diperbarui");
+
+            return res.success(result, "User updated");
         } catch (err) {
             next(err);
         }
     }
+
 
     async remove(req, res, next) {
         try {

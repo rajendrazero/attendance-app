@@ -1,15 +1,16 @@
-// src/middleware/response.middleware.js
 module.exports = (req, res, next) => {
-    // SUCCESS RESPONSE
-    res.success = (data = null, message = "Success", status = 200) => {
-        return res.status(status).json({
+    res.success = (data = null, message = "Success", meta = null, status = 200) => {
+        const payload = {
             success: true,
             message,
             data
-        });
+        };
+
+        if (meta) payload.meta = meta;
+
+        return res.status(status).json(payload);
     };
 
-    // ERROR RESPONSE
     res.error = (
         message = "Terjadi kesalahan",
         errorCode = "SERVER_ERROR",

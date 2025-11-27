@@ -15,7 +15,6 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *   name: Kelas
  *   description: CRUD data Kelas
  */
-
 /* ------------------------------------------------------------
  *  KELAS SCHEMA
  * ------------------------------------------------------------*/
@@ -28,7 +27,7 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *       properties:
  *         id:
  *           type: integer
- *         nama:
+ *         nama_kelas:
  *           type: string
  *           example: "XI RPL 1"
  *         tingkat:
@@ -37,11 +36,25 @@ const { allowRoles } = require("../../middleware/rbac.middleware");
  *         jurusan_id:
  *           type: integer
  *           example: 3
+ *         wali_kelas_id:
+ *           type: integer
+ *           example: 12
+ *         tahun_ajaran:
+ *           type: string
+ *           example: "2024/2025"
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *         updated_at:
+ *           type: string
+ *           format: date-time
  *       required:
- *         - nama
+ *         - nama_kelas
  *         - tingkat
  *         - jurusan_id
+ *         - tahun_ajaran
  */
+
 
 /* ------------------------------------------------------------
  *  CREATE KELAS

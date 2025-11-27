@@ -54,6 +54,13 @@ class AbsensiService {
                 throw err;
             }
 
+            // pastikan student_id merujuk ke user dengan role perangkat_kelas atau siswa
+            if (!["perangkat_kelas", "siswa"].includes(siswa.role)) {
+                const err = new Error("STUDENT_ROLE_INVALID");
+                err.status = 400;
+                throw err;
+            }
+
             // CHECK DUPLICATE
             const exist = await Absensi.findOne({
                 where: { student_id, tanggal, jam_ke: null }
@@ -139,6 +146,13 @@ class AbsensiService {
                 throw err;
             }
 
+            // pastikan student_id merujuk ke user dengan role perangkat_kelas atau siswa
+            if (!["perangkat_kelas", "siswa"].includes(siswa.role)) {
+                const err = new Error("STUDENT_ROLE_INVALID");
+                err.status = 400;
+                throw err;
+            }
+
             const relasiGMK = await GuruMapelKelas.findOne({
                 where: { guru_id: created_by, kelas_id: siswa.kelas_id }
             });
@@ -204,14 +218,75 @@ class AbsensiService {
     /* -----------------------------------------------------
      * QUEUE VALIDASI
      * ----------------------------------------------------*/
-    async getValidationQueue() {
-        return Absensi.findAll({
-            where: { is_validated: false },
+    async getValidationQueue(guruId = null, page = 1, limit = 20) {
+        const offset = (page - 1) * limit;
+
+        // Jika tidak diberikan guruId, kembalikan semua absensi yang belum divalidasi (paginated)
+        if (!guruId) {
+            const result = await Absensi.findAndCountAll({
+                where: { is_validated: false },
+                include: [
+                    { model: User, as: "siswa" },
+                    { model: Mapel, as: "mapel" }
+                ],
+                order: [["tanggal", "DESC"]],
+                offset,
+                limit
+            });
+
+            return fromSequelizeFindAndCount(result, page, limit);
+        }
+
+        // jika guruId diberikan dan user adalah super_admin, kembalikan semua (paginated)
+        const caller = await User.findByPk(guruId);
+        if (caller && caller.role === "super_admin") {
+            const result = await Absensi.findAndCountAll({
+                where: { is_validated: false },
+                include: [
+                    { model: User, as: "siswa" },
+                    { model: Mapel, as: "mapel" }
+                ],
+                order: [["tanggal", "DESC"]],
+                offset,
+                limit
+            });
+
+            return fromSequelizeFindAndCount(result, page, limit);
+        }
+
+        // Ambil relasi GMK untuk guru agar kita tahu mapel/kelas yang dia ampu
+        const relasi = await GuruMapelKelas.findAll({ where: { guru_id: guruId } });
+        if (!relasi || relasi.length === 0) return fromSequelizeFindAndCount({ rows: [], count: 0 }, page, limit);
+
+        const mapelIds = [...new Set(relasi.map(r => r.mapel_id).filter(Boolean))];
+        const kelasIds = [...new Set(relasi.map(r => r.kelas_id).filter(Boolean))];
+
+        const where = { is_validated: false };
+        const ors = [];
+
+        if (mapelIds.length) {
+            ors.push({ mapel_id: { [Op.in]: mapelIds } });
+        }
+
+        // Untuk absensi harian (jam_ke = null), validasi bisa berdasarkan kelas siswa
+        if (kelasIds.length) {
+            ors.push({ jam_ke: null, ["$siswa.kelas_id$"]: { [Op.in]: kelasIds } });
+        }
+
+        if (ors.length) where[Op.or] = ors;
+
+        const result = await Absensi.findAndCountAll({
+            where,
             include: [
                 { model: User, as: "siswa" },
                 { model: Mapel, as: "mapel" }
-            ]
+            ],
+            order: [["tanggal", "DESC"]],
+            offset,
+            limit
         });
+
+        return fromSequelizeFindAndCount(result, page, limit);
     }
 
     /* -----------------------------------------------------
@@ -225,6 +300,10 @@ class AbsensiService {
             throw err;
         }
 
+        //co-pilot {Perbaikan: sesuaikan pembuatan ValidationLog dengan skema tabel validation_log
+        // menyimpan status sebelum dan sesudah beserta action dan timestamp}
+        const statusSebelum = absensi.status;
+
         absensi.validated_by = guruId;
         absensi.validated_at = new Date();
         absensi.is_validated = true;
@@ -233,7 +312,10 @@ class AbsensiService {
         await ValidationLog.create({
             absensi_id,
             validator_id: guruId,
-            keterangan: status_validasi
+            status_sebelum: statusSebelum,
+            status_sesudah: status_validasi || absensi.status,
+            action: "validate",
+            timestamp: new Date()
         });
 
         await ActivityLog.create({
@@ -251,6 +333,13 @@ class AbsensiService {
      * REKAP HARIAN
      * ----------------------------------------------------*/
     async rekapHarian({ start_date, end_date, kelas_id, jurusan_id, semester_id, page = 1, limit = 20 }) {
+        // CASTING WAJIB
+        page = Number(page) || 1;
+        limit = Number(limit) || 20;
+        kelas_id = kelas_id ? Number(kelas_id) : null;
+        jurusan_id = jurusan_id ? Number(jurusan_id) : null;
+        semester_id = semester_id ? Number(semester_id) : null;
+        
         const offset = (page - 1) * limit;
 
         const where = {};
@@ -282,14 +371,18 @@ class AbsensiService {
     /* -----------------------------------------------------
      * REKAP BULANAN
      * ----------------------------------------------------*/
-    async rekapBulanan({ periode, kelas_id, semester_id }) {
+    async rekapBulanan({ periode, kelas_id, semester_id, page = 1, limit = 20 }) {
         if (!periode) throw new Error("PERIODE_REQUIRED");
 
         const [year, month] = periode.split("-");
+        // hitung hari terakhir bulan secara dinamis
         const start = `${year}-${month}-01`;
-        const end = `${year}-${month}-31`;
+        const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+        const end = `${year}-${month}-${String(lastDay).padStart(2, "0")}`;
 
-        return Absensi.findAll({
+        const offset = (page - 1) * limit;
+
+        const result = await Absensi.findAndCountAll({
             where: {
                 tanggal: { [Op.between]: [start, end] },
                 ...(semester_id && { semester_id }),
@@ -299,22 +392,30 @@ class AbsensiService {
                 { model: User, as: "siswa", include: [{ model: Kelas, as: "kelas" }] },
                 { model: Mapel, as: "mapel" },
                 { model: Semester, as: "semester" }
-            ]
+            ],
+            offset,
+            limit,
+            order: [["tanggal", "DESC"]]
         });
+
+        return fromSequelizeFindAndCount(result, page, limit);
     }
 
     /* -----------------------------------------------------
      * REKAP PER KELAS
      * ----------------------------------------------------*/
-    async rekapKelas({ kelas_id, periode, semester_id }) {
+    async rekapKelas({ kelas_id, periode, semester_id, page = 1, limit = 20 }) {
         if (!kelas_id) throw new Error("KELAS_ID_REQUIRED");
         if (!periode) throw new Error("PERIODE_REQUIRED");
 
         const [year, month] = periode.split("-");
         const start = `${year}-${month}-01`;
-        const end = `${year}-${month}-31`;
+        const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+        const end = `${year}-${month}-${String(lastDay).padStart(2, "0")}`;
 
-        return Absensi.findAll({
+        const offset = (page - 1) * limit;
+
+        const result = await Absensi.findAndCountAll({
             where: {
                 "$siswa.kelas_id$": kelas_id,
                 tanggal: { [Op.between]: [start, end] },
@@ -324,14 +425,19 @@ class AbsensiService {
                 { model: User, as: "siswa" },
                 { model: Mapel, as: "mapel" },
                 { model: Semester, as: "semester" }
-            ]
+            ],
+            offset,
+            limit,
+            order: [["tanggal", "DESC"]]
         });
+
+        return fromSequelizeFindAndCount(result, page, limit);
     }
 
     /* -----------------------------------------------------
      * RANKING SISWA
      * ----------------------------------------------------*/
-    async rankingSiswa({ kelas_id, periode = null, semester_id = null, limit = 10 }) {
+    async rankingSiswa({ kelas_id, periode = null, semester_id = null, page = 1, limit = 10 }) {
         if (!kelas_id) throw new Error("KELAS_ID_REQUIRED");
 
         const where = { "$siswa.kelas_id$": kelas_id };
@@ -390,13 +496,18 @@ class AbsensiService {
 
         final.sort((a, b) => b.score - a.score);
 
-        return final.slice(0, limit);
+        const total = final.length;
+        const offset = (page - 1) * limit;
+        const pageRows = final.slice(offset, offset + limit);
+
+        const { buildPaginatedResponse } = require("../../utils/pagination");
+        return buildPaginatedResponse(pageRows, total, page, limit);
     }
 
     /* -----------------------------------------------------
      * RIWAYAT SISWA
      * ----------------------------------------------------*/
-    async riwayatSiswa({ student_id, start_date, end_date, semester_id }) {
+    async riwayatSiswa({ student_id, start_date, end_date, semester_id, page = 1, limit = 20 }) {
         const where = { student_id };
 
         if (semester_id) where.semester_id = semester_id;
@@ -405,7 +516,9 @@ class AbsensiService {
             where.tanggal = { [Op.between]: [start_date, end_date] };
         }
 
-        return Absensi.findAll({
+        const offset = (page - 1) * limit;
+
+        const result = await Absensi.findAndCountAll({
             where,
             include: [
                 { model: Mapel, as: "mapel" },
@@ -415,18 +528,32 @@ class AbsensiService {
             order: [
                 ["tanggal", "DESC"],
                 ["jam_ke", "ASC"]
-            ]
+            ],
+            offset,
+            limit
         });
+
+        return fromSequelizeFindAndCount(result, page, limit);
     }
 
     /* -----------------------------------------------------
      * EXPORT CSV
      * ----------------------------------------------------*/
     async exportCsv(filter) {
-        const data = await this.rekapHarian(filter);
+        // Export the (possibly large) rekap data to CSV.
+        // Ensure we convert Sequelize instances to plain objects to avoid circular references.
+        const page = parseInt(filter.page) || 1;
+        // if no explicit limit provided, request a very large page size to include all rows
+        const limit = parseInt(filter.limit) || 1000000;
+
+        const paginated = await this.rekapHarian({ ...filter, page, limit });
+        const rows = (paginated && paginated.data) ? paginated.data.map(r => {
+            if (r && typeof r.toJSON === "function") return r.toJSON();
+            return r;
+        }) : [];
 
         const parser = new Parser();
-        return parser.parse(data.data);
+        return parser.parse(rows);
     }
 
     /* -----------------------------------------------------
@@ -436,23 +563,31 @@ class AbsensiService {
         const data = await this.rekapHarian(filter);
 
         const doc = new PDFDocument();
-        let buffers = [];
+        //co-pilot {Perbaikan: exportPdf sekarang mengembalikan Promise yang menunggu event 'end' agar buffer PDF lengkap}
+        return new Promise((resolve, reject) => {
+            const buffers = [];
 
-        doc.on("data", buffers.push.bind(buffers));
-        doc.on("end", () => {});
+            doc.on("data", chunk => buffers.push(chunk));
+            doc.on("end", () => {
+                try {
+                    resolve(Buffer.concat(buffers));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+            doc.on("error", reject);
 
-        doc.fontSize(18).text("Rekap Absensi", { align: "center" });
-        doc.moveDown();
+            doc.fontSize(18).text("Rekap Absensi", { align: "center" });
+            doc.moveDown();
 
-        data.data.forEach(d => {
-            doc.fontSize(12).text(
-                `${d.siswa.nama_lengkap} | ${d.tanggal} | ${d.status}`
-            );
+            data.data.forEach(d => {
+                doc.fontSize(12).text(
+                    `${d.siswa.nama_lengkap} | ${d.tanggal} | ${d.status}`
+                );
+            });
+
+            doc.end();
         });
-
-        doc.end();
-
-        return Buffer.concat(buffers);
     }
 }
 

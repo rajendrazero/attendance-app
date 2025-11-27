@@ -41,7 +41,10 @@ const inputJam = async (req, res, next) => {
  * ============================================================*/
 const getValidationQueue = async (req, res, next) => {
     try {
-        const result = await absensiService.getValidationQueue(req.user.id);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
+        const result = await absensiService.getValidationQueue(req.user.id, page, limit);
         return res.success(result, "Daftar absensi menunggu validasi");
     } catch (err) {
         return next(err);
@@ -68,9 +71,14 @@ const validateAbsensi = async (req, res, next) => {
  * ============================================================*/
 const rekapHarian = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
         const result = await absensiService.rekapHarian({
             ...req.query,
-            semester_id: req.query.semester_id || null
+            semester_id: req.query.semester_id || null,
+            page,
+            limit
         });
 
         return res.success(result, "Rekap harian berhasil diambil");
@@ -84,9 +92,14 @@ const rekapHarian = async (req, res, next) => {
  * ============================================================*/
 const rekapBulanan = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
         const result = await absensiService.rekapBulanan({
             ...req.query,
-            semester_id: req.query.semester_id || null
+            semester_id: req.query.semester_id || null,
+            page,
+            limit
         });
 
         return res.success(result, "Rekap bulanan berhasil diambil");
@@ -100,9 +113,15 @@ const rekapBulanan = async (req, res, next) => {
  * ============================================================*/
 const rekapKelas = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
         const result = await absensiService.rekapKelas({
-            ...req.query,
-            semester_id: req.query.semester_id || null
+            kelas_id: req.query.kelas_id,
+            periode: req.query.periode || req.query.period || null,
+            semester_id: req.query.semester_id || null,
+            page,
+            limit
         });
 
         return res.success(result, "Rekap kelas berhasil diambil");
@@ -111,14 +130,20 @@ const rekapKelas = async (req, res, next) => {
     }
 };
 
+
 /* ============================================================
  * RANKING SISWA
  * ============================================================*/
 const rankingSiswa = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
         const result = await absensiService.rankingSiswa({
             ...req.query,
-            semester_id: req.query.semester_id || null
+            semester_id: req.query.semester_id || null,
+            page,
+            limit
         });
 
         return res.success(result, "Ranking siswa berhasil diambil");
@@ -132,10 +157,15 @@ const rankingSiswa = async (req, res, next) => {
  * ============================================================*/
 const riwayatSiswa = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
         const result = await absensiService.riwayatSiswa({
             student_id: req.user.id,
             ...req.query,
-            semester_id: req.query.semester_id || null
+            semester_id: req.query.semester_id || null,
+            page,
+            limit
         });
 
         return res.success(result, "Riwayat absensi siswa");

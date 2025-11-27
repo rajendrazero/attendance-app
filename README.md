@@ -6,7 +6,7 @@ Developer senior tetap dapat overview arsitektur
 
 Dokumentasi tetap AI-friendly sehingga ChatGPT/AION bisa membaca ulang dan langsung memahami seluruh alur sistem
 
-Struktur rapih, modular, dan bisa langsung dipakai di GitHub
+Struktur rapih, modular,dan bisa langsung dipakai di GitHub
 
 
 README ini mencakup seluruh fitur, konsep, arsitektur, flow absensi, RBAC, scheduler, upload file, swagger, migration, modular module loader, dan teknologi utama.

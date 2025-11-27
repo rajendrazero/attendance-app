@@ -1,3 +1,6 @@
+
+
+
 require("dotenv").config();
 const { migrator } = require("./index");
 

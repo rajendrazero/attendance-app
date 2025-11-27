@@ -5,6 +5,7 @@ module.exports = {
                 id: 1,
                 kode_mapel: "RPL101",
                 nama_mapel: "Pemrograman Dasar",
+                kategori: "Wajib",
                 created_at: new Date(),
                 updated_at: new Date()
             }

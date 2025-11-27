@@ -8,6 +8,7 @@ const { validateUser } = require("./user.validation");
 const fs = require("fs");
 const csvParser = require("csv-parser");
 const { Parser } = require("json2csv");
+const stream = require("stream");
 
 class UserService {
     /* CREATE USER */
@@ -58,7 +59,7 @@ class UserService {
     }
 
     /* UPDATE USER */
-    async update(id, updateData, actorId) {
+    async update(id, updateData, actor) {
         const user = await User.findByPk(id);
         if (!user) {
             const err = new Error("USER_NOT_FOUND");
@@ -66,6 +67,25 @@ class UserService {
             throw err;
         }
 
+        // Rule: user biasa hanya boleh update dirinya sendiri
+        const allowedRoles = ["super_admin"]; 
+
+        if (actor.id !== id && !allowedRoles.includes(actor.role)) {
+            const err = new Error("FORBIDDEN");
+            err.status = 403;
+            err.details = "You cannot update another user";
+            throw err;
+        }
+
+        // Rule tambahan: HANYA super_admin boleh ubah role
+        if (updateData.role && actor.role !== "super_admin") {
+            const err = new Error("FORBIDDEN");
+            err.status = 403;
+            err.details = "Only super_admin can update role";
+            throw err;
+        }
+
+        // hash password bila ada
         if (updateData.password) {
             updateData.password = await bcrypt.hash(updateData.password, 10);
         }
@@ -75,7 +95,7 @@ class UserService {
         await user.update(updateData);
 
         await ActivityLog.create({
-            user_id: actorId,
+            user_id: actor.id,
             action: "update_user",
             description: `User ${user.username} diperbarui`,
             resource: "users",
@@ -85,6 +105,8 @@ class UserService {
 
         return user;
     }
+
+
 
     /* DELETE */
     async remove(id, actorId) {
@@ -140,10 +162,27 @@ class UserService {
             throw err;
         }
 
+        //co-pilot {Perbaikan: dukung kedua mode upload multer (disk: file.path) dan memory (file.buffer)}
         const rows = [];
 
+        const makeStream = () => {
+            if (file.buffer) {
+                const pass = new stream.PassThrough();
+                pass.end(file.buffer);
+                return pass;
+            }
+
+            if (file.path) {
+                return fs.createReadStream(file.path);
+            }
+
+            throw new Error("FILE_INVALID");
+        };
+
         return new Promise((resolve, reject) => {
-            fs.createReadStream(file.path)
+            const input = makeStream();
+
+            input
                 .pipe(csvParser())
                 .on("data", row => rows.push(row))
                 .on("end", async () => {
@@ -157,17 +196,11 @@ class UserService {
                             });
 
                             if (exists) {
-                                skipped.push({
-                                    row: r,
-                                    reason: "USERNAME_EXISTS"
-                                });
+                                skipped.push({ row: r, reason: "USERNAME_EXISTS" });
                                 continue;
                             }
 
-                            const passwordHash = await bcrypt.hash(
-                                "user12345",
-                                10
-                            );
+                            const passwordHash = await bcrypt.hash("user12345", 10);
 
                             const user = await User.create({
                                 nisn: r.nisn || null,
@@ -184,10 +217,7 @@ class UserService {
 
                             created.push(user);
                         } catch (err) {
-                            skipped.push({
-                                row: r,
-                                reason: err.message
-                            });
+                            skipped.push({ row: r, reason: err.message });
                         }
                     }
 

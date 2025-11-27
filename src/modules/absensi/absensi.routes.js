@@ -19,7 +19,7 @@ const uploadTo = require("../../middleware/upload.middleware");
  */
 
 /* ============================================================
- *  INPUT ABSENSI HARIAN
+ *  INPUT ABSENSI HARIAN (UPDATED)
  * ============================================================*/
 /**
  * @swagger
@@ -44,27 +44,39 @@ const uploadTo = require("../../middleware/upload.middleware");
  *             properties:
  *               student_id:
  *                 type: integer
+ *                 description: ID siswa
  *                 example: 10
  *               tanggal:
  *                 type: string
  *                 format: date
+ *                 description: Tanggal absensi (YYYY-MM-DD)
  *                 example: "2025-11-15"
  *               status:
  *                 type: string
  *                 enum: [hadir, sakit, izin, tanpa_keterangan]
+ *                 example: hadir
+ *                 description: Status kehadiran siswa
  *               keterangan:
  *                 type: string
+ *                 example: "Sakit flu"
+ *                 description: Keterangan tambahan (opsional)
  *               bukti:
  *                 type: string
  *                 format: binary
+ *                 description: Upload bukti (opsional)
+ *               semester_id:
+ *                 type: integer
+ *                 example: 1
+ *                 description: ID semester (opsional, auto dari backend jika tidak diisi)
  *     responses:
  *       201:
  *         description: Input absensi harian berhasil
  */
+
 router.post(
     "/input-harian",
     auth,
-    allowRoles("perangkat_kelas", "wali_kelas"),
+    allowRoles("super_admin","perangkat_kelas", "wali_kelas"),
     uploadTo("bukti").single("bukti"),
     controller.inputHarian
 );
@@ -115,7 +127,7 @@ router.post(
 router.post(
     "/input-jam",
     auth,
-    allowRoles("guru_mapel", "wali_kelas"),
+    allowRoles("guru_mapel", "wali_kelas", "super_admin"),
     uploadTo("bukti").single("bukti"),
     controller.inputJam
 );
@@ -138,7 +150,7 @@ router.post(
 router.get(
     "/validation-queue",
     auth,
-    allowRoles("guru_mapel"),
+    allowRoles("guru_mapel", "super_admin"),
     controller.getValidationQueue
 );
 
@@ -171,7 +183,7 @@ router.get(
 router.post(
     "/validate",
     auth,
-    allowRoles("guru_mapel"),
+    allowRoles("guru_mapel","super_admin"),
     controller.validateAbsensi
 );
 
@@ -308,7 +320,7 @@ router.get("/ranking-siswa", auth, controller.rankingSiswa);
  *       200:
  *         description: OK
  */
-router.get("/riwayat", auth, allowRoles("siswa"), controller.riwayatSiswa);
+router.get("/riwayat", auth, allowRoles("siswa", "perangkat_kelas"), controller.riwayatSiswa);
 
 /* ============================================================
  * EXPORT CSV
