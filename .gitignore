@@ -1,0 +1,21 @@
+# Folder build/output
+dist/
+build/
+
+# Node modules
+node_modules/
+
+# File environment
+.env
+.env.local
+.env.development
+
+# IDE
+.vscode/
+.idea/
+
+# Log
+*.log
+
+# Image uploads
+uploads/
