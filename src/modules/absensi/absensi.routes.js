@@ -76,7 +76,7 @@ const uploadTo = require("../../middleware/upload.middleware");
 router.post(
     "/input-harian",
     auth,
-    allowRoles("super_admin","perangkat_kelas", "wali_kelas"),
+    allowRoles("super_admin", "perangkat_kelas", "wali_kelas"),
     uploadTo("bukti").single("bukti"),
     controller.inputHarian
 );
@@ -183,7 +183,7 @@ router.get(
 router.post(
     "/validate",
     auth,
-    allowRoles("guru_mapel","super_admin"),
+    allowRoles("guru_mapel", "super_admin"),
     controller.validateAbsensi
 );
 
@@ -320,7 +320,67 @@ router.get("/ranking-siswa", auth, controller.rankingSiswa);
  *       200:
  *         description: OK
  */
-router.get("/riwayat", auth, allowRoles("siswa", "perangkat_kelas"), controller.riwayatSiswa);
+router.get(
+    "/riwayat",
+    auth,
+    allowRoles("siswa", "perangkat_kelas"),
+    controller.riwayatSiswa
+);
+
+/* ============================================================
+ * AMBIL ABSENSI BY STUDENT ID (WITH SUMMARY)
+ * ============================================================*/
+/**
+ * @swagger
+ * /api/absensi/siswa/{student_id}:
+ *   get:
+ *     summary: Mengambil seluruh absensi berdasarkan ID siswa (paginated + summary)
+ *     description: "Mengambil daftar absensi berdasarkan ID siswa dengan filter periode, semester, pagination, dan summary."
+ *     tags: [Absensi]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: student_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID siswa"
+ *         example: 15
+ *
+ *       - in: query
+ *         name: periode
+ *         schema:
+ *           type: string
+ *         description: "Filter bulan. Format: YYYY-MM. Contoh: 2025-01"
+ *         example: "2025-11"
+ *
+ *       - in: query
+ *         name: semester_id
+ *         schema:
+ *           type: integer
+ *         description: "Filter semester"
+ *         example: 2
+ *
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: "Nomor halaman paginasi"
+ *         example: 1
+ *
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: "Jumlah item per halaman"
+ *         example: 20
+ *
+ *     responses:
+ *       200:
+ *         description: "Data absensi siswa berhasil diambil"
+ */
+router.get("/siswa/:student_id", auth, controller.ambilAbsensiByStudentId);
 
 /* ============================================================
  * EXPORT CSV

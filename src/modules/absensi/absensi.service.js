@@ -1,4 +1,16 @@
+// 1. Library eksternal
+const { Op } = require("sequelize");
+const { Parser } = require("json2csv");
+const PDFDocument = require("pdfkit");
+
+// 2. Utils / helper
 const { fromSequelizeFindAndCount } = require("../../utils/pagination");
+const { isValidJam, deleteUploadedFile } = require("./absensi.helper");
+
+// 3. Validasi
+const { validateInputAbsensi } = require("./absensi.validation");
+
+// 4. Models
 const Absensi = require("./absensi.model");
 const User = require("../user/user.model");
 const Mapel = require("../mapel/mapel.model");
@@ -6,16 +18,9 @@ const GuruMapelKelas = require("../guru_mapel_kelas/gmk.model");
 const FileBukti = require("../file_bukti/fileBukti.model");
 const ValidationLog = require("../validation_log/validationLog.model");
 const ActivityLog = require("../activity_log/activityLog.model");
-const { validateInputAbsensi } = require("./absensi.validation");
-const { isValidJam, deleteUploadedFile } = require("./absensi.helper");
-const { Op } = require("sequelize");
 const Kelas = require("../kelas/kelas.model");
 const Jurusan = require("../jurusan/jurusan.model");
 const Semester = require("../semester/semester.model");
-
-// export tools
-const { Parser } = require("json2csv");
-const PDFDocument = require("pdfkit");
 
 class AbsensiService {
     /* -----------------------------------------------------
@@ -45,7 +50,8 @@ class AbsensiService {
                 throw err;
             }
 
-            let { student_id, tanggal, status, keterangan, created_by, file } = data;
+            let { student_id, tanggal, status, keterangan, created_by, file } =
+                data;
 
             const siswa = await User.findByPk(student_id);
             if (!siswa) {
@@ -131,7 +137,15 @@ class AbsensiService {
                 throw err;
             }
 
-            let { student_id, tanggal, jam_ke, status, keterangan, created_by, file } = data;
+            let {
+                student_id,
+                tanggal,
+                jam_ke,
+                status,
+                keterangan,
+                created_by,
+                file
+            } = data;
 
             if (!jam_ke || !isValidJam(jam_ke)) {
                 const err = new Error("JAM_KE_TIDAK_VALID");
@@ -255,11 +269,22 @@ class AbsensiService {
         }
 
         // Ambil relasi GMK untuk guru agar kita tahu mapel/kelas yang dia ampu
-        const relasi = await GuruMapelKelas.findAll({ where: { guru_id: guruId } });
-        if (!relasi || relasi.length === 0) return fromSequelizeFindAndCount({ rows: [], count: 0 }, page, limit);
+        const relasi = await GuruMapelKelas.findAll({
+            where: { guru_id: guruId }
+        });
+        if (!relasi || relasi.length === 0)
+            return fromSequelizeFindAndCount(
+                { rows: [], count: 0 },
+                page,
+                limit
+            );
 
-        const mapelIds = [...new Set(relasi.map(r => r.mapel_id).filter(Boolean))];
-        const kelasIds = [...new Set(relasi.map(r => r.kelas_id).filter(Boolean))];
+        const mapelIds = [
+            ...new Set(relasi.map(r => r.mapel_id).filter(Boolean))
+        ];
+        const kelasIds = [
+            ...new Set(relasi.map(r => r.kelas_id).filter(Boolean))
+        ];
 
         const where = { is_validated: false };
         const ors = [];
@@ -270,7 +295,10 @@ class AbsensiService {
 
         // Untuk absensi harian (jam_ke = null), validasi bisa berdasarkan kelas siswa
         if (kelasIds.length) {
-            ors.push({ jam_ke: null, ["$siswa.kelas_id$"]: { [Op.in]: kelasIds } });
+            ors.push({
+                jam_ke: null,
+                ["$siswa.kelas_id$"]: { [Op.in]: kelasIds }
+            });
         }
 
         if (ors.length) where[Op.or] = ors;
@@ -332,14 +360,22 @@ class AbsensiService {
     /* -----------------------------------------------------
      * REKAP HARIAN
      * ----------------------------------------------------*/
-    async rekapHarian({ start_date, end_date, kelas_id, jurusan_id, semester_id, page = 1, limit = 20 }) {
+    async rekapHarian({
+        start_date,
+        end_date,
+        kelas_id,
+        jurusan_id,
+        semester_id,
+        page = 1,
+        limit = 20
+    }) {
         // CASTING WAJIB
         page = Number(page) || 1;
         limit = Number(limit) || 20;
         kelas_id = kelas_id ? Number(kelas_id) : null;
         jurusan_id = jurusan_id ? Number(jurusan_id) : null;
         semester_id = semester_id ? Number(semester_id) : null;
-        
+
         const offset = (page - 1) * limit;
 
         const where = {};
@@ -371,13 +407,23 @@ class AbsensiService {
     /* -----------------------------------------------------
      * REKAP BULANAN
      * ----------------------------------------------------*/
-    async rekapBulanan({ periode, kelas_id, semester_id, page = 1, limit = 20 }) {
+    async rekapBulanan({
+        periode,
+        kelas_id,
+        semester_id,
+        page = 1,
+        limit = 20
+    }) {
         if (!periode) throw new Error("PERIODE_REQUIRED");
 
         const [year, month] = periode.split("-");
         // hitung hari terakhir bulan secara dinamis
         const start = `${year}-${month}-01`;
-        const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+        const lastDay = new Date(
+            parseInt(year, 10),
+            parseInt(month, 10),
+            0
+        ).getDate();
         const end = `${year}-${month}-${String(lastDay).padStart(2, "0")}`;
 
         const offset = (page - 1) * limit;
@@ -389,7 +435,11 @@ class AbsensiService {
                 ...(kelas_id && { "$siswa.kelas_id$": kelas_id })
             },
             include: [
-                { model: User, as: "siswa", include: [{ model: Kelas, as: "kelas" }] },
+                {
+                    model: User,
+                    as: "siswa",
+                    include: [{ model: Kelas, as: "kelas" }]
+                },
                 { model: Mapel, as: "mapel" },
                 { model: Semester, as: "semester" }
             ],
@@ -410,7 +460,11 @@ class AbsensiService {
 
         const [year, month] = periode.split("-");
         const start = `${year}-${month}-01`;
-        const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+        const lastDay = new Date(
+            parseInt(year, 10),
+            parseInt(month, 10),
+            0
+        ).getDate();
         const end = `${year}-${month}-${String(lastDay).padStart(2, "0")}`;
 
         const offset = (page - 1) * limit;
@@ -437,7 +491,13 @@ class AbsensiService {
     /* -----------------------------------------------------
      * RANKING SISWA
      * ----------------------------------------------------*/
-    async rankingSiswa({ kelas_id, periode = null, semester_id = null, page = 1, limit = 10 }) {
+    async rankingSiswa({
+        kelas_id,
+        periode = null,
+        semester_id = null,
+        page = 1,
+        limit = 10
+    }) {
         if (!kelas_id) throw new Error("KELAS_ID_REQUIRED");
 
         const where = { "$siswa.kelas_id$": kelas_id };
@@ -482,9 +542,8 @@ class AbsensiService {
 
         const final = Object.values(ranking).map(r => {
             const totalPertemuan = r.hadir + r.sakit + r.izin + r.alpha;
-            const persentase = totalPertemuan === 0
-                ? 0
-                : (r.hadir / totalPertemuan) * 100;
+            const persentase =
+                totalPertemuan === 0 ? 0 : (r.hadir / totalPertemuan) * 100;
 
             return {
                 ...r,
@@ -507,7 +566,14 @@ class AbsensiService {
     /* -----------------------------------------------------
      * RIWAYAT SISWA
      * ----------------------------------------------------*/
-    async riwayatSiswa({ student_id, start_date, end_date, semester_id, page = 1, limit = 20 }) {
+    async riwayatSiswa({
+        student_id,
+        start_date,
+        end_date,
+        semester_id,
+        page = 1,
+        limit = 20
+    }) {
         const where = { student_id };
 
         if (semester_id) where.semester_id = semester_id;
@@ -535,6 +601,99 @@ class AbsensiService {
 
         return fromSequelizeFindAndCount(result, page, limit);
     }
+    
+    /* -----------------------------------------------------
+ * AMBIL ABSENSI BY STUDENT ID
+ * ----------------------------------------------------*/
+async ambilAbsensiByStudentId({
+    student_id,
+    periode = null,
+    semester_id = null,
+    page = 1,
+    limit = 20
+}) {
+    if (!student_id) {
+        const err = new Error("STUDENT_ID_REQUIRED");
+        err.status = 400;
+        throw err;
+    }
+
+    const where = { student_id };
+
+    // Jika periode = "YYYY-MM"
+    if (periode) {
+        const [yearStr, monthStr] = periode.split("-");
+        const year = Number(yearStr);
+        const month = Number(monthStr);
+
+        if (
+            Number.isNaN(year) ||
+            Number.isNaN(month) ||
+            month < 1 ||
+            month > 12
+        ) {
+            const err = new Error("INVALID_PERIODE_FORMAT");
+            err.status = 400;
+            throw err;
+        }
+
+        const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${String(month).padStart(2, "0")}-${String(
+            lastDay
+        ).padStart(2, "0")}`;
+
+        where.tanggal = { [Op.between]: [startDate, endDate] };
+    }
+
+    if (semester_id) {
+        where.semester_id = semester_id;
+    }
+
+    const offset = (page - 1) * limit;
+
+    // Data paginated utama
+    const result = await Absensi.findAndCountAll({
+        where,
+        include: [
+            { model: Mapel, as: "mapel" },
+            { model: User, as: "validator" },
+            { model: Semester, as: "semester" }
+        ],
+        order: [
+            ["tanggal", "DESC"],
+            ["jam_ke", "ASC"]
+        ],
+        offset,
+        limit
+    });
+
+    // Summary all (hadir / sakit / izin / alpha)
+    const summaryRaw = await Absensi.findAll({
+        where,
+        attributes: [
+            "status",
+            [Absensi.sequelize.fn("COUNT", Absensi.sequelize.col("status")), "count"]
+        ],
+        group: ["status"]
+    });
+
+    const summary = { hadir: 0, sakit: 0, izin: 0, tanpa_keterangan: 0, total: 0 };
+
+    summaryRaw.forEach(r => {
+        const status = r.get("status");
+        const count = Number(r.get("count"));
+        summary[status] = count;
+        summary.total += count;
+    });
+
+    const paginated = fromSequelizeFindAndCount(result, page, limit);
+
+    return {
+        ...paginated,
+        summary
+    };
+}
 
     /* -----------------------------------------------------
      * EXPORT CSV
@@ -547,10 +706,14 @@ class AbsensiService {
         const limit = parseInt(filter.limit) || 1000000;
 
         const paginated = await this.rekapHarian({ ...filter, page, limit });
-        const rows = (paginated && paginated.data) ? paginated.data.map(r => {
-            if (r && typeof r.toJSON === "function") return r.toJSON();
-            return r;
-        }) : [];
+        const rows =
+            paginated && paginated.data
+                ? paginated.data.map(r => {
+                      if (r && typeof r.toJSON === "function")
+                          return r.toJSON();
+                      return r;
+                  })
+                : [];
 
         const parser = new Parser();
         return parser.parse(rows);

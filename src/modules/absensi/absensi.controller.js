@@ -44,7 +44,11 @@ const getValidationQueue = async (req, res, next) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
 
-        const result = await absensiService.getValidationQueue(req.user.id, page, limit);
+        const result = await absensiService.getValidationQueue(
+            req.user.id,
+            page,
+            limit
+        );
         return res.success(result, "Daftar absensi menunggu validasi");
     } catch (err) {
         return next(err);
@@ -81,7 +85,7 @@ const rekapHarian = async (req, res, next) => {
             limit
         });
 
-        return res.success(result, "Rekap harian berhasil diambil");
+        return res.success(result, "Rekap harian berhasil dil");
     } catch (err) {
         return next(err);
     }
@@ -130,7 +134,6 @@ const rekapKelas = async (req, res, next) => {
     }
 };
 
-
 /* ============================================================
  * RANKING SISWA
  * ============================================================*/
@@ -169,6 +172,28 @@ const riwayatSiswa = async (req, res, next) => {
         });
 
         return res.success(result, "Riwayat absensi siswa");
+    } catch (err) {
+        return next(err);
+    }
+};
+
+/* ============================================================
+ * AMBIL ABSENSI BY STUDENT ID
+ * ============================================================*/
+const ambilAbsensiByStudentId = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
+        const result = await absensiService.ambilAbsensiByStudentId({
+            student_id: req.params.student_id, // ambil dari URL param
+            periode: req.query.periode || null,
+            semester_id: req.query.semester_id || null,
+            page,
+            limit
+        });
+
+        return res.success(result, "Absensi siswa berhasil diambil");
     } catch (err) {
         return next(err);
     }
@@ -222,6 +247,7 @@ module.exports = {
     rekapKelas,
     rankingSiswa,
     riwayatSiswa,
+    ambilAbsensiByStudentId,
     exportCsv,
     exportPdf
 };
